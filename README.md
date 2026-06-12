@@ -2,6 +2,8 @@
 
 **Come as you are, leave with structure.**
 
+**Live app:** https://raw-io.vercel.app
+
 raw.io is an AI-powered notes app for stream-of-consciousness thinkers. Instead of forcing structured input, it accepts raw voice notes, unfiltered rants, and half-formed ideas — then uses AI to punctuate, extract key insights, surface action items, and process your thoughts into something clearer than what you started with.
 
 Not a structured notes tool like Notion. A thinking partner.
@@ -62,7 +64,7 @@ cd frontend
 python -m http.server 5501
 ```
 
-Then open `http://127.0.0.1:5501/hopeful.html` in Chrome.
+Then open `http://127.0.0.1:5501/index.html` in Chrome.
 
 ---
 
@@ -70,11 +72,13 @@ Then open `http://127.0.0.1:5501/hopeful.html` in Chrome.
 
 raw.io is an active work-in-progress portfolio project. Current focus areas:
 
-- [ ] History screen for saved notes
-- [ ] Bullet point styling refinement
-- [ ] Reset / new note flow
+- [x] Deployment (frontend on Vercel, backend on Render)
+- [x] History screen for saved notes
+- [x] Reset / new note flow
+- [x] Bullet point styling refinement
 - [ ] Mind map visualisation of connected ideas
-- [ ] Deployment (frontend on Vercel, backend on Render)
+
+> **Note:** The backend runs on Render's free tier and may have a cold-start delay of ~30–60 seconds on the first request after a period of inactivity.
 
 ---
 
