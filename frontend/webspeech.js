@@ -26,7 +26,7 @@ function sendNotes(text) {
     document.querySelector('#mic-icon').innerText = 'hourglass_empty';
     console.log('[send] Sending to API:', text);
 
-    fetch('https://raw-io-1.onrender.com/', {
+    fetch('https://raw-io-1.onrender.com', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes: text })
