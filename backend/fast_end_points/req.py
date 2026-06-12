@@ -1,5 +1,3 @@
-from urllib import response
-
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -20,7 +18,7 @@ client = genai.Client(api_key=gemini_key)
 app = FastAPI()
 
 origins = [
-    'http://127.0.0.1:5501',
+    'https://raw-io.vercel.app',
     'http://localhost:5501'
 ]
 
@@ -45,6 +43,6 @@ async def process(note : Raw):
     contents=note.notes
     )
     #json clean up
-    clean = response.text
+    clean = response.text or ""
     clean_json = clean.replace("```json", "").replace("```", "").strip()
     return {"status": "received", "text": json.loads(clean_json)}
