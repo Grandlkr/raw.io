@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(Get-ChildItem -Path \"C:\\\\Users\\\\user\\\\OneDrive\\\\Documents\\\\vscode\\\\codes\\\\raw.io\\\\frontend\" -Recurse -Depth 3)",
+      "Bash(Select-Object -Property FullName, PSIsContainer)",
+      "Bash(Sort-Object FullName)",
+      "Bash(Format-Table -AutoSize)",
+      "PowerShell(Get-ChildItem \"C:\\\\Users\\\\user\\\\OneDrive\\\\Documents\\\\vscode\\\\codes\\\\raw.io\\\\backend\\\\fast end points\\\\fast.env\\\\Lib\\\\site-packages\" -Directory | Where-Object { $_.Name -notmatch \"\\\\.dist-info$|^__\" } | Select-Object Name | Sort-Object Name)"
+    ]
+  }
+}

@@ -1,0 +1,217 @@
+<!-- Unified Notepad (Draft) -->
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Draft Note - raw.io</title>
+<!-- Fonts -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#c2652a",
+                        "on-secondary": "#ffffff",
+                        "surface-container-low": "#f6f0e8",
+                        "surface-bright": "#faf5ee",
+                        "on-primary-container": "#fbe8d8",
+                        "surface-container-high": "#ece6dc",
+                        "surface": "#faf5ee",
+                        "secondary-fixed-dim": "#cec6be",
+                        "error": "#c0392b",
+                        "primary-fixed": "#fbe8d8",
+                        "on-error-container": "#7a1a10",
+                        "background": "#faf5ee",
+                        "on-background": "#3a302a",
+                        "on-tertiary-container": "#3a2020",
+                        "surface-dim": "#dcd6cc",
+                        "on-primary-fixed": "#401a08",
+                        "error-container": "#fce4e0",
+                        "on-surface-variant": "#605850",
+                        "tertiary": "#8c3c3c",
+                        "on-primary-fixed-variant": "#8a4518",
+                        "tertiary-fixed-dim": "#e8a0a0",
+                        "surface-container": "#f2ece4",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#d8d0c8",
+                        "inverse-surface": "#3a302a",
+                        "primary-container": "#e08850",
+                        "on-tertiary-fixed-variant": "#6e3030",
+                        "primary": "#c2652a",
+                        "surface-container-highest": "#e6e0d6",
+                        "secondary": "#78706a",
+                        "on-surface": "#3a302a",
+                        "inverse-on-surface": "#faf5ee",
+                        "primary-fixed-dim": "#f0a878",
+                        "on-secondary-container": "#605850",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#ece6dc",
+                        "outline": "#9a9088",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#fce0e0",
+                        "secondary-fixed": "#eae2da",
+                        "on-tertiary-fixed": "#2e1515",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#504840",
+                        "on-secondary-fixed": "#2a2420",
+                        "tertiary-container": "#d47070",
+                        "secondary-container": "#eae2da",
+                        "inverse-primary": "#f0a878"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["EB Garamond", "serif"],
+                        "body": ["Manrope", "sans-serif"],
+                        "label": ["Manrope", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .serif-title { font-family: 'EB Garamond', serif; }
+        .sans-label { font-family: 'Manrope', sans-serif; }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+        .notepad-lines {
+            background-image: linear-gradient(theme('colors.outline-variant' / 30%) 1px, transparent 1px);
+            background-size: 100% 2rem;
+            line-height: 2rem;
+        }
+    
+        /* Reveal animation for FAB menu */
+        #fab-menu {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(0.9) translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+        }
+        #fab-menu.active {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .fab-rotate {
+            transition: transform 0.3s ease;
+        }
+        .fab-active .fab-rotate {
+            transform: rotate(45deg);
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen font-body selection:bg-primary-container selection:text-on-primary-container">
+<header class="bg-[#faf5ee]/90 dark:bg-stone-950/90 backdrop-blur-sm border-b border-[#d8d0c8]/60 dark:border-stone-800 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#c2652a] cursor-pointer">menu</span>
+<span class="text-2xl font-serif italic text-[#c2652a] dark:text-[#d97706]">raw.io</span>
+</div>
+<div class="hidden md:flex bg-surface-container-low rounded-full p-1 border border-outline-variant/30">
+<button class="px-6 py-1.5 rounded-full text-sm font-bold sans-label bg-white shadow-sm text-[#c2652a] border border-[#d8d0c8]/40">Draft</button>
+<button class="px-6 py-1.5 rounded-full text-sm font-semibold sans-label text-stone-500 hover:text-primary transition-colors">Refined</button>
+<button class="px-6 py-1.5 rounded-full text-sm font-semibold sans-label text-stone-500 hover:text-primary transition-colors">Map</button>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#c2652a] cursor-pointer">settings</span>
+</div>
+</header>
+<main class="max-w-xl mx-auto px-6 pt-8 pb-32">
+<!-- Mobile Toggle Switch -->
+<div class="flex md:hidden bg-surface-container-low rounded-full p-1 border border-outline-variant/30 mb-8 w-fit mx-auto">
+<button class="px-5 py-1.5 rounded-full text-xs font-bold sans-label bg-white shadow-sm text-[#c2652a] border border-[#d8d0c8]/40">Draft</button>
+<button class="px-5 py-1.5 rounded-full text-xs font-semibold sans-label text-stone-500">Refined</button>
+<button class="px-5 py-1.5 rounded-full text-xs font-semibold sans-label text-stone-500">Map</button>
+</div>
+<!-- Notepad Area -->
+<article class="relative min-h-[600px] bg-white/50 rounded-2xl border border-outline-variant/40 p-8 shadow-sm overflow-hidden">
+<!-- Vertical margin line -->
+<div class="absolute left-12 top-0 bottom-0 w-[1px] bg-red-200/40"></div>
+<header class="mb-10 pl-8">
+<h1 class="text-4xl font-headline font-semibold tracking-tight text-on-background leading-tight mb-2">Project Aurora</h1>
+<p class="text-xs font-label uppercase tracking-widest text-stone-400">May 24, 2024 • 10:42 AM</p>
+</header>
+<div class="notepad-lines pl-8 font-body text-md text-on-surface-variant" id="raw_txt">
+            Thoughts: The brand identity needs to feel more organic. Maybe sun-bleached linens? We should avoid pure whites and cold grays. Everything needs to feel warm, tactile, and human. The interface should behave like a physical object catching the light at golden hour. Emphasize the grain of the paper and the slight weight of the ink.
+        </div>
+<div class="mt-12 pl-8">
+<img alt="Moodboard" class="w-full h-72 object-cover rounded-xl grayscale-[20%] sepia-[10%] shadow-sm" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC57byXTn5gkTPuPyC-YMqTcvPWAMM4zGI2N_aKaVNq_K1urxPq1oVT3wVSUOQPgsp2mTpbXDnbJhkxieV-XCYObrUoojdR4oBGRW-MgZwN_xud5k-jLFxuwHyv9o8_B_tEsTPhf9GUJa6-fA0sjMnPTMgD2LHZ_Uhc2KVeu1x_OvEOOxlnYUnn6qqoPAuhCIj_NzkGng-6rcLszAhJiwAeb8pQ8WMXh134PVXwl0W0a6NXXSUw0OXPLT-h_FXh017hWekoTOznIMgd"/>
+</div>
+</article>
+</main>
+<!-- Floating Microphone Button -->
+<div class="fixed bottom-24 right-6 flex flex-col items-end gap-3 z-50">
+<div class="flex flex-col gap-3 mb-2" id="fab-menu">
+<button class="w-12 h-12 rounded-full bg-white text-stone-600 shadow-lg flex items-center justify-center hover:bg-surface-container transition-all" title="File Attachments">
+<span class="material-symbols-outlined text-2xl">attach_file</span>
+</button>
+<button class="w-12 h-12 rounded-full bg-white text-stone-600 shadow-lg flex items-center justify-center hover:bg-surface-container transition-all" title="Draw">
+<span class="material-symbols-outlined text-2xl">brush</span>
+</button>
+<button class="w-12 h-12 rounded-full bg-white text-stone-600 shadow-lg flex items-center justify-center hover:bg-surface-container transition-all" title="Tables/Grids">
+<span class="material-symbols-outlined text-2xl">grid_on</span>
+</button>
+<button class="w-12 h-12 rounded-full bg-white text-stone-600 shadow-lg flex items-center justify-center hover:bg-surface-container transition-all" title="Checklist">
+<span class="material-symbols-outlined text-2xl">checklist</span>
+</button>
+<button class="w-12 h-12 rounded-full bg-white text-stone-600 shadow-lg flex items-center justify-center hover:bg-surface-container transition-all" title="Font Edit">
+<span class="material-symbols-outlined text-2xl">font_download</span>
+</button>
+<button class="w-12 h-12 rounded-full bg-white text-stone-600 shadow-lg flex items-center justify-center hover:bg-surface-container transition-all" title="New Note">
+<span class="material-symbols-outlined text-2xl">add</span>
+</button>
+</div>
+<button class="w-16 h-16 rounded-full bg-primary text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all" id="main-fab" onclick="toggleRecording()">
+<span class="material-symbols-outlined text-3xl fab-rotate" id="main-fab-icon" style="font-variation-settings: 'FILL' 1;">mic</span>
+</button>
+</div>
+<!-- Bottom Navigation Bar -->
+<nav class="bg-[#faf5ee]/95 dark:bg-stone-950/95 backdrop-blur-md border-t border-[#d8d0c8]/40 dark:border-stone-800 shadow-[0_-2px_16px_rgba(58,48,42,0.04)] fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3">
+<div class="flex flex-col items-center justify-center text-[#c2652a] scale-110 transition-transform">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">edit_note</span>
+<span class="text-[11px] uppercase tracking-widest font-sans font-semibold mt-1">Note</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-600 hover:text-[#c2652a] transition-colors">
+<span class="material-symbols-outlined">history</span>
+<span class="text-[11px] uppercase tracking-widest font-sans font-semibold mt-1">History</span>
+</div>
+</nav>
+<!--
+<script>
+    function toggleFab() {
+        const menu = document.getElementById('fab-menu');
+        const fabWrapper = document.getElementById('main-fab').parentElement;
+        const icon = document.getElementById('main-fab-icon');
+        
+        menu.classList.toggle('active');
+        fabWrapper.classList.toggle('fab-active');
+    }
+    function togglerecording() {
+
+    }
+
+        
+
+    document.addEventListener('click', (e) => {
+        const fabContainer = document.getElementById('main-fab').parentElement;
+        const menu = document.getElementById('fab-menu');
+        if (!fabContainer.contains(e.target) && menu.classList.contains('active')) {
+            toggleFab();
+        }
+    });
+</script>
+-->
+<script src="webspeech.js"></script>
+</body></html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html><html class="light" lang="en"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Unified Note - raw.io</title>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface-tint": "#c2652a",
+                        "on-secondary": "#ffffff",
+                        "surface-container-low": "#f6f0e8",
+                        "surface-bright": "#faf5ee",
+                        "on-primary-container": "#fbe8d8",
+                        "surface-container-high": "#ece6dc",
+                        "surface": "#faf5ee",
+                        "secondary-fixed-dim": "#cec6be",
+                        "error": "#c0392b",
+                        "primary-fixed": "#fbe8d8",
+                        "on-error-container": "#7a1a10",
+                        "background": "#faf5ee",
+                        "on-background": "#3a302a",
+                        "on-tertiary-container": "#3a2020",
+                        "surface-dim": "#dcd6cc",
+                        "on-primary-fixed": "#401a08",
+                        "error-container": "#fce4e0",
+                        "on-surface-variant": "#605850",
+                        "tertiary": "#8c3c3c",
+                        "on-primary-fixed-variant": "#8a4518",
+                        "tertiary-fixed-dim": "#e8a0a0",
+                        "surface-container": "#f2ece4",
+                        "on-tertiary": "#ffffff",
+                        "outline-variant": "#d8d0c8",
+                        "inverse-surface": "#3a302a",
+                        "primary-container": "#e08850",
+                        "on-tertiary-fixed-variant": "#6e3030",
+                        "primary": "#c2652a",
+                        "surface-container-highest": "#e6e0d6",
+                        "secondary": "#78706a",
+                        "on-surface": "#3a302a",
+                        "inverse-on-surface": "#faf5ee",
+                        "primary-fixed-dim": "#f0a878",
+                        "on-secondary-container": "#605850",
+                        "on-primary": "#ffffff",
+                        "surface-variant": "#ece6dc",
+                        "outline": "#9a9088",
+                        "surface-container-lowest": "#ffffff",
+                        "tertiary-fixed": "#fce0e0",
+                        "secondary-fixed": "#eae2da",
+                        "on-tertiary-fixed": "#2e1515",
+                        "on-error": "#ffffff",
+                        "on-secondary-fixed-variant": "#504840",
+                        "on-secondary-fixed": "#2a2420",
+                        "tertiary-container": "#d47070",
+                        "secondary-container": "#eae2da",
+                        "inverse-primary": "#f0a878"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "fontFamily": {
+                        "headline": ["EB Garamond", "serif"],
+                        "body": ["Manrope", "sans-serif"],
+                        "label": ["Manrope", "sans-serif"]
+                    }
+                },
+            },
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .serif-title { font-family: 'EB Garamond', serif; }
+        .sans-label { font-family: 'Manrope', sans-serif; }
+        body {
+            min-height: max(884px, 100dvh);
+        }
+        /* Reveal animation for FAB menu */
+        #fab-menu {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: scale(0.9) translateY(20px);
+            opacity: 0;
+            pointer-events: none;
+        }
+        #fab-menu.active {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .fab-rotate {
+            transition: transform 0.3s ease;
+        }
+        .fab-active .fab-rotate {
+            transform: rotate(45deg);
+        }
+        .view-content {
+            display: none;
+        }
+        .view-content.active {
+            display: block;
+        }
+        .tab-btn.active {
+            background-color: white;
+            color: #c2652a;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+            border: 1px solid rgba(216, 208, 200, 0.4);
+            font-weight: 800;
+        }
+        ul {
+            list-style-type: disc;
+            padding-left: 1.5rem;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background min-h-screen font-body selection:bg-primary-container selection:text-on-primary-container">
+<header class="bg-[#faf5ee]/90 dark:bg-stone-950/90 backdrop-blur-sm border-b border-[#d8d0c8]/60 dark:border-stone-800 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#c2652a] cursor-pointer">menu</span>
+<span class="text-2xl font-serif italic text-[#c2652a] dark:text-[#d97706]">raw.io</span>
+</div>
+<div class="hidden md:flex bg-surface-container-low rounded-full p-1 border border-outline-variant/30" id="desktop-tabs">
+<button class="tab-btn px-6 py-1.5 rounded-full text-sm font-semibold sans-label text-stone-500 hover:text-primary transition-colors active" data-view="draft" onclick="switchView('draft')">Draft</button>
+<button class="tab-btn px-6 py-1.5 rounded-full text-sm font-semibold sans-label text-stone-500 hover:text-primary transition-colors" data-view="refined" onclick="switchView('refined')">Refined</button>
+<button class="tab-btn px-6 py-1.5 rounded-full text-sm font-semibold sans-label text-stone-500 hover:text-primary transition-colors" data-view="map" onclick="switchView('map')">Map</button>
+</div>
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-[#c2652a] cursor-pointer">settings</span>
+</div>
+</header>
+<main class="max-w-xl mx-auto px-6 pt-8 pb-32" id="page-note">
+<div class="flex md:hidden bg-surface-container-low rounded-full p-1 border border-outline-variant/30 mb-8 w-fit mx-auto" id="mobile-tabs">
+<button class="tab-btn px-5 py-1.5 rounded-full text-xs font-semibold sans-label text-stone-500 active" data-view="draft" onclick="switchView('draft')">Draft</button>
+<button class="tab-btn px-5 py-1.5 rounded-full text-xs font-semibold sans-label text-stone-500" data-view="refined" onclick="switchView('refined')">Refined</button>
+<button class="tab-btn px-5 py-1.5 rounded-full text-xs font-semibold sans-label text-stone-500" data-view="map" onclick="switchView('map')">Map</button>
+</div>
+<!-- VIEW: DRAFT -->
+<div class="view-content active" id="view-draft">
+<section class="mb-10 text-center">
+<h1 class="text-4xl md:text-5xl font-headline font-semibold tracking-tight text-on-background leading-tight" id="note-title"><br></h1>
+<p class="mt-3 text-stone-500 italic font-headline text-lg">Unfiltered Transcript • Oct 24</p>
+</section>
+<div class="space-y-6">
+<div class="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/40">
+<p class="text-sm leading-relaxed text-on-surface italic" id="raw_txt" contenteditable="true">
+                    "...speak or type your notes here. ai will help you refine and structure them in the next view. this is your raw canvas."
+                </p>
+</div>
+</div>
+</div>
+<!-- VIEW: REFINED -->
+<div class="view-content" id="view-refined">
+<section class="mb-10 text-center">
+<div class="flex items-center justify-center gap-2 text-tertiary mb-3">
+<span class="material-symbols-outlined text-sm" style="font-variation-settings: &quot;FILL&quot; 1;">auto_awesome</span>
+<span class="text-[10px] uppercase tracking-[0.2em] font-bold sans-label">AI Refined Content</span>
+</div>
+<h1 class="text-4xl md:text-5xl font-headline font-semibold tracking-tight text-on-background leading-tight" id="note-title-refined"><br/></h1>
+<p class="mt-3 text-stone-500 italic font-headline text-lg">Transcribed Oct 24 • San Francisco Studio</p>
+</section>
+<div class="space-y-6">
+<!--KEY INSIGHTS CONTENT-->
+<section class="p-8 bg-surface-container-low rounded-2xl border border-outline-variant/40" id="key_txt">
+<h3 class="sans-label text-[11px] uppercase tracking-widest font-bold text-primary mb-8 text-center">Key Insights</h3>
+<ul class="space-y-6">
+<li class="flex gap-4">
+<span class="text-primary font-headline text-2xl italic flex-shrink-0">01</span>
+<p class="text-sm leading-relaxed text-on-surface">The brand identity must pivot from industrial to "organic luxury" by Q1.</p>
+</li>
+<li class="flex gap-4">
+<span class="text-primary font-headline text-2xl italic flex-shrink-0">02</span>
+<p class="text-sm leading-relaxed text-on-surface">Material sourcing focus: Sun-bleached linens and reclaimed desert stone.</p>
+</li>
+<li class="flex gap-4">
+<span class="text-primary font-headline text-2xl italic flex-shrink-0">03</span>
+<p class="text-sm leading-relaxed text-on-surface">Digital experience should prioritize "frictionless serenity" over engagement metrics.</p>
+</li>
+</ul>
+</section>
+<!-- Refined Content -->
+<section class="p-8 bg-white/50 rounded-2xl border border-outline-variant/40" id="refined_txt">
+<h2 class="text-2xl font-headline font-medium text-on-background mb-4">I. The Aesthetic Manifesto</h2>
+<div class="h-px w-16 bg-primary mb-6"></div>
+<p class="text-md leading-relaxed text-on-surface-variant mb-6">
+                    Project Aurora represents a departure from the sterile minimalism of the last decade. We are moving toward what we call <span class="italic font-headline">"Sun-Baked Simplicity"</span>. This is not about being rustic, but about being human. The color palette is strictly governed by the hues of the Sahara at midday.
+                </p>
+<ul class="space-y-4 list-none">
+<li class="flex items-start gap-4">
+<span class="material-symbols-outlined text-primary mt-1 text-sm">circle</span>
+<span class="text-on-surface text-sm">Removal of all cold-spectrum grays and pure whites.</span>
+</li>
+<li class="flex items-start gap-4">
+<span class="material-symbols-outlined text-primary mt-1 text-sm">circle</span>
+<span class="text-on-surface text-sm">Emphasis on tactile typography — headings should feel etched, not just printed.</span>
+</li>
+</ul>
+</section>
+<!-- Action content -->
+<section class="p-8 bg-surface-container rounded-2xl border border-outline-variant/40" id="action_txt">
+<h2 class="text-2xl font-headline font-medium text-on-background mb-4">II. Actionable Roadmap</h2>
+<div class="h-px w-16 bg-primary mb-6"></div>
+<div class="bg-white p-6 rounded-xl border border-outline-variant/30 space-y-4">
+<div class="flex items-center justify-between">
+<span class="sans-label text-[10px] font-bold text-stone-400 tracking-wider">NEXT STEP</span>
+<span class="text-[9px] bg-tertiary-fixed text-on-tertiary-fixed-variant px-2 py-0.5 rounded-full font-extrabold uppercase">Urgent</span>
+</div>
+<p class="text-on-background font-medium text-sm">Finalize the material partnership with the artisan collective in Marrakesh.</p>
+<div class="flex -space-x-2 pt-2">
+<div class="w-8 h-8 rounded-full border-2 border-background bg-stone-200 overflow-hidden">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCE6vNzoV2WJZothlHe-NmFGo_3SNZc9hX58nJpz8AGmracPmOjA7DcKG0WCvru3WpbxXsgsyFF_qUkJEFHoELJfeKDgHqxwQ63b1BsnY8G07VVA-FvXmh7uU37bPJpETcw7fbN7zLNNy-QWEdDHRVOP4VapJFSt1Ox61SsmGiKKoz18YJj6aNeWwyq80Ea07qTH0yO52XeWEuNi8Cr7kYUHJ-GCLva2Mn4lM4BGt43F2C1fLsLw6xHaH623-_vRoUslIJsHu6h3I14">
+</div>
+<div class="w-8 h-8 rounded-full border-2 border-background bg-stone-200 overflow-hidden">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCslqUrEi-3EAPP7e2OVaebZK90YcNfyjDBto6WLfYmZ1PP7Dk5EM7ynp_C-5BYfz2mpx6pmP7i-Sa5Rdpww1tpnG95-GotSk8DU47QTyvZ65ftnJwgXnpJn_jeLzxNR-edwRdSqNWvmboUloq3HAUCfQRpELiF72hcXWygq0QY5EV8gJSrvfC2Krxcrqz3LMzI4N4TwhIqZCcsqC16KgUZTtLBonuQ4ltxS5sb815WtgbH5MRJAmUjjetJGw91MW7arvRYEHiJJemN">
+</div>
+</div>
+</div>
+</section>
+</div>
+</div>
+<!-- VIEW: MAP -->
+<div class="view-content" id="view-map">
+<section class="mb-10 text-center">
+<h1 class="text-4xl md:text-5xl font-headline font-semibold tracking-tight text-on-background leading-tight">Strategy Map</h1>
+<p class="mt-3 text-stone-500 italic font-headline text-lg">Visualizing Project Aurora</p>
+</section>
+<div class="relative bg-surface-container-low rounded-3xl border border-outline-variant/40 h-96 overflow-hidden flex items-center justify-center p-8">
+<!-- Simple Mind Map Simulation -->
+<div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(#c2652a 1px, transparent 1px); background-size: 20px 20px;"></div>
+<div class="relative z-10 w-full h-full flex flex-col items-center justify-center gap-8">
+<div class="bg-primary text-white px-8 py-3 rounded-full font-headline text-xl shadow-lg border-2 border-white/20">Project Aurora</div>
+<div class="flex flex-wrap justify-center gap-6">
+<div class="flex flex-col items-center">
+<div class="h-8 w-px bg-primary/30"></div>
+<div class="bg-white px-4 py-2 rounded-xl text-xs font-bold tracking-wider text-primary border border-outline-variant">AESTHETICS</div>
+</div>
+<div class="flex flex-col items-center">
+<div class="h-8 w-px bg-primary/30"></div>
+<div class="bg-white px-4 py-2 rounded-xl text-xs font-bold tracking-wider text-primary border border-outline-variant">ROADMAP</div>
+</div>
+<div class="flex flex-col items-center">
+<div class="h-8 w-px bg-primary/30"></div>
+<div class="bg-white px-4 py-2 rounded-xl text-xs font-bold tracking-wider text-primary border border-outline-variant">MATERIALS</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- PAGE: HISTORY -->
+<div class="hidden max-w-xl mx-auto px-6 pt-8 pb-32" id="page-history">
+<section class="mb-10 text-center">
+<h1 class="text-4xl md:text-5xl font-headline font-semibold tracking-tight text-on-background leading-tight">History</h1>
+<p class="mt-3 text-stone-500 italic font-headline text-lg">Your saved notes</p>
+</section>
+<div class="space-y-4" id="history-list"></div>
+<div class="hidden text-center py-16 text-stone-400" id="history-empty">
+<span class="material-symbols-outlined text-5xl mb-4 block">history</span>
+<p class="font-headline text-xl italic">No notes yet</p>
+<p class="text-sm mt-2">Notes you refine will appear here</p>
+</div>
+</div>
+<!-- Adaptive Multi-functional FAB -->
+<div class="fixed bottom-24 right-6 flex flex-col items-end gap-3 z-50">
+<div class="flex flex-col gap-3 mb-2" id="fab-menu"><button class="w-12 h-12 rounded-full bg-white text-stone-600 shadow-lg flex items-center justify-center hover:bg-surface-container transition-all" title="File Attachments"><span class="material-symbols-outlined text-2xl">attach_file</span></button><button class="w-12 h-12 rounded-full bg-white text-stone-600 shadow-lg flex items-center justify-center hover:bg-surface-container transition-all" title="Draw"><span class="material-symbols-outlined text-2xl">brush</span></button><button class="w-12 h-12 rounded-full bg-white text-stone-600 shadow-lg flex items-center justify-center hover:bg-surface-container transition-all" title="Tables/Grids"><span class="material-symbols-outlined text-2xl">grid_on</span></button><button class="w-12 h-12 rounded-full bg-white text-stone-600 shadow-lg flex items-center justify-center hover:bg-surface-container transition-all" title="Checklist"><span class="material-symbols-outlined text-2xl">checklist</span></button><button class="w-12 h-12 rounded-full bg-white text-stone-600 shadow-lg flex items-center justify-center hover:bg-surface-container transition-all" title="Font Edit"><span class="material-symbols-outlined text-2xl">font_download</span></button><button class="w-12 h-12 rounded-full bg-white text-stone-600 shadow-lg flex items-center justify-center hover:bg-surface-container transition-all" title="New Note"><span class="material-symbols-outlined text-2xl">add</span></button></div>
+<button class="w-16 h-16 rounded-full bg-primary text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all" id="main-fab" onclick="handleFab()">
+<span class="material-symbols-outlined text-3xl fab-rotate" id="main-fab-icon" style="font-variation-settings: &quot;FILL&quot; 1;">mic</span>
+</button>
+</div>
+<nav class="bg-[#faf5ee]/95 dark:bg-stone-950/95 backdrop-blur-md border-t border-[#d8d0c8]/40 dark:border-stone-800 shadow-[0_-2px_16px_rgba(58,48,42,0.04)] fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3">
+<div class="flex flex-col items-center justify-center text-[#c2652a] scale-110 transition-transform cursor-pointer" id="nav-note" onclick="showPage('note')">
+<span class="material-symbols-outlined" style="font-variation-settings: &quot;FILL&quot; 1;">edit_note</span>
+<span class="text-[11px] uppercase tracking-widest font-sans font-semibold mt-1">Note</span>
+</div>
+<div class="flex flex-col items-center justify-center text-stone-400 dark:text-stone-600 hover:text-[#8c3c3c] transition-colors cursor-pointer" id="nav-history" onclick="showPage('history')">
+<span class="material-symbols-outlined">history</span>
+<span class="text-[11px] uppercase tracking-widest font-sans font-semibold mt-1">History</span>
+</div>
+</nav>
+<script>
+    let currentPage = 'note';
+
+    function showPage(page) {
+        currentPage = page;
+        const isNote = page === 'note';
+
+        document.getElementById('page-note').classList.toggle('hidden', !isNote);
+        document.getElementById('page-history').classList.toggle('hidden', isNote);
+
+        // Nav active states
+        const navNote = document.getElementById('nav-note');
+        const navHistory = document.getElementById('nav-history');
+        navNote.classList.toggle('text-[#c2652a]', isNote);
+        navNote.classList.toggle('scale-110', isNote);
+        navNote.classList.toggle('text-stone-400', !isNote);
+        navHistory.classList.toggle('text-[#c2652a]', !isNote);
+        navHistory.classList.toggle('scale-110', !isNote);
+        navHistory.classList.toggle('text-stone-400', isNote);
+
+        // Swap FAB icon & hide menu when on history
+        const fabIcon = document.getElementById('main-fab-icon');
+        const fabMenu = document.getElementById('fab-menu');
+        if (isNote) {
+            fabIcon.innerText = 'mic';
+            fabMenu.style.display = '';
+        } else {
+            fabIcon.innerText = 'note_add';
+            fabMenu.style.display = 'none';
+        }
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function handleFab() {
+        if (currentPage === 'history') {
+            newNote();
+        } else {
+            toggleRecording();
+        }
+    }
+
+    function newNote() {
+        // Reset draft tab
+        document.getElementById('note-title').innerHTML = '<br>';
+        document.getElementById('raw_txt').innerText = '"...speak or type your notes here. ai will help you refine and structure them in the next view. this is your raw canvas."';
+
+        // Reset refined tab
+        document.getElementById('note-title-refined').innerHTML = '<br>';
+        document.getElementById('key_txt').querySelector('ul').innerHTML = '';
+        document.getElementById('refined_txt').querySelector('p').innerHTML = '';
+        document.getElementById('action_txt').querySelector('p.text-on-background').innerHTML = '';
+
+        showPage('note');
+        switchView('draft');
+    }
+
+    function switchView(viewId) {
+        document.querySelectorAll('.view-content').forEach(el => el.classList.remove('active'));
+        document.getElementById(`view-${viewId}`).classList.add('active');
+
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.getAttribute('data-view') === viewId);
+        });
+
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+</script>
+<script src="webspeech.js"></script>
+
+</body></html>
