@@ -21,17 +21,18 @@ function getAllnotes() {
 }
 
 function sendNotes(text) {
-    if (!text.trim()) return;
+    if (!text.trim()) { console.warn('[send] Empty text, aborting.'); return; }
     document.querySelector('#mic-icon').innerText = 'hourglass_empty';
-    console.log("Sending: " + text);
+    console.log('[send] Sending to API:', text);
 
     fetch('https://raw-io-1.onrender.com/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ notes: text })
     })
-    .then(response => response.json())
+    .then(response => { console.log('[send] Response status:', response.status); return response.json(); })
     .then((data) => {
+        console.log('[send] API response received:', data);
         document.querySelector('#note-title').innerText = data.text.title;
         document.querySelector('#note-title-refined').innerText = data.text.title;
         document.querySelector('#raw_txt').innerText = data.text.punctuated_raw;
@@ -76,29 +77,34 @@ function sendNotes(text) {
         });
 
         document.querySelector('#mic-icon').innerText = 'mic';
+        console.log('[send] Note saved to localStorage, switching to refined view.');
 
-        // Switch to refined view to show results
         if (typeof switchView === 'function') switchView('refined');
     })
-    .catch(err => console.error('Fetch failed:', err));
+    .catch(err => console.error('[send] Fetch failed:', err));
 }
 
 function toggleRecording() {
     if (!isRecording) {
-        speak.start();
         isRecording = true;
         document.querySelector('#raw_txt').innerText = '';
         document.querySelector('#mic-icon').innerText = 'radio_button_checked';
-        console.log("Ready to receive voice.");
+        speak.start();
+        console.log('[mic] Recording started.');
     } else {
-        speak.stop();
         isRecording = false;
         document.querySelector('#mic-icon').innerText = 'hourglass_empty';
+        speak.stop();
+        console.log('[mic] Recording stopped, sending notes...');
     }
 }
 
 speak.onend = () => {
-    if (!isRecording) {
+    if (isRecording) {
+        console.log('[mic] Silence detected, restarting recognition...');
+        try { speak.start(); } catch (e) { console.warn('[mic] Restart failed:', e); }
+    } else {
+        console.log('[mic] Recognition ended, processing text.');
         const text = document.querySelector('#raw_txt').innerText;
         sendNotes(text);
     }
@@ -110,7 +116,7 @@ speak.onresult = (event) => {
         transcript += event.results[i][0].transcript + ' ';
     }
     document.querySelector('#raw_txt').innerText = transcript;
-    console.log("Received: " + transcript);
+    console.log('[mic] Transcript updated:', transcript);
 };
 
 document.querySelector('#raw_txt').addEventListener('keydown', (e) => {
