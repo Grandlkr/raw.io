@@ -18,6 +18,7 @@ client = genai.Client(api_key=gemini_key)
 app = FastAPI()
 
 origins = [
+    'https://raw-l70m1ajy3-imisioluwa-s-projects.vercel.app'
     'https://raw-io.vercel.app',
     'http://localhost:5501'
 ]
