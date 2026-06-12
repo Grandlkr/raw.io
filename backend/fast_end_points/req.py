@@ -17,20 +17,13 @@ client = genai.Client(api_key=gemini_key)
 #initialize fast api
 app = FastAPI()
 
-origins = [
-    'https://raw-l70m1ajy3-imisioluwa-s-projects.vercel.app'
-    'https://raw-io.vercel.app',
-    'http://localhost:5501'
-]
-
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origin_regex=r"https://raw.*\.vercel\.app",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-
 class Raw(BaseModel):
     notes: str
 with open('prompt.txt', 'r') as f:
