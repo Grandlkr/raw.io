@@ -2,10 +2,11 @@ const speech = window.SpeechRecognition || window.webkitSpeechRecognition;
 const speak = new speech();
 speak.continuous = true;
 speak.lang = 'en-US';
-speak.interimResults = false;
+speak.interimResults = true;  // show words live as they're spoken
 speak.maxAlternatives = 1;
 
 let isRecording = false;
+let savedTranscript = '';  // accumulates across silence-restart sessions
 
 function saveNotes(note) {
     let rawio_notes = localStorage.getItem('rawio_notes');
@@ -87,6 +88,7 @@ function sendNotes(text) {
 function toggleRecording() {
     if (!isRecording) {
         isRecording = true;
+        savedTranscript = '';
         document.querySelector('#raw_txt').innerText = '';
         document.querySelector('#mic-icon').innerText = 'radio_button_checked';
         speak.start();
@@ -99,10 +101,31 @@ function toggleRecording() {
     }
 }
 
+speak.onresult = (event) => {
+    let interimText = '';
+    let finalText = '';
+
+    for (let i = 0; i < event.results.length; i++) {
+        if (event.results[i].isFinal) {
+            finalText += event.results[i][0].transcript + ' ';
+        } else {
+            interimText += event.results[i][0].transcript;
+        }
+    }
+
+    // Show saved (from previous sessions) + this session's finals + live interim
+    document.querySelector('#raw_txt').innerText = savedTranscript + finalText + interimText;
+    console.log('[mic] Transcript — final:', finalText.trim(), '| interim:', interimText.trim());
+};
+
 speak.onend = () => {
     if (isRecording) {
-        console.log('[mic] Silence detected, restarting recognition...');
-        try { speak.start(); } catch (e) { console.warn('[mic] Restart failed:', e); }
+        // Save current transcript before restarting so it isn't lost
+        savedTranscript = document.querySelector('#raw_txt').innerText;
+        console.log('[mic] Silence detected, restarting. Saved so far:', savedTranscript);
+        setTimeout(() => {
+            try { speak.start(); } catch (e) { console.warn('[mic] Restart failed:', e); }
+        }, 100);
     } else {
         console.log('[mic] Recognition ended, processing text.');
         const text = document.querySelector('#raw_txt').innerText;
@@ -110,19 +133,16 @@ speak.onend = () => {
     }
 };
 
-speak.onresult = (event) => {
-    let transcript = '';
-    for (let i = 0; i < event.results.length; i++) {
-        transcript += event.results[i][0].transcript + ' ';
-    }
-    document.querySelector('#raw_txt').innerText = transcript;
-    console.log('[mic] Transcript updated:', transcript);
+speak.onerror = (e) => {
+    console.error('[mic] Recognition error:', e.error);
 };
 
+// Keyboard input: Enter to send
 document.querySelector('#raw_txt').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         const text = document.querySelector('#raw_txt').innerText;
+        console.log('[keyboard] Enter pressed, sending:', text);
         sendNotes(text);
     }
 });
