@@ -87,16 +87,17 @@ function sendNotes(text) {
 
 function toggleRecording() {
     if (!isRecording) {
+        speak.start();
         isRecording = true;
         savedTranscript = '';
         document.querySelector('#raw_txt').innerText = '';
         document.querySelector('#mic-icon').innerText = 'radio_button_checked';
-        speak.start();
+        
         console.log('[mic] Recording started.');
     } else {
+        speak.stop();
         isRecording = false;
         document.querySelector('#mic-icon').innerText = 'hourglass_empty';
-        speak.stop();
         console.log('[mic] Recording stopped, sending notes...');
     }
 }
