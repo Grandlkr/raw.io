@@ -1,10 +1,10 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 from google import genai
-from google.genai import types
+from google.genai import types, errors
 import json
 
 # get gemini key from .env file
@@ -30,13 +30,16 @@ with open('prompt.txt', 'r') as f:
     system_instruction = f.read()
 @app.post('/')
 async def process(note : Raw):
-    #gemini call
-    response = client.models.generate_content(
-    model="gemini-3.5-flash",
-    config=types.GenerateContentConfig(system_instruction=system_instruction),
-    contents=note.notes
-    )
-    #json clean up
+    try:
+        response = client.models.generate_content(
+            model="gemini-3.5-flash",
+            config=types.GenerateContentConfig(system_instruction=system_instruction),
+            contents=note.notes
+        )
+    except errors.ServerError as e:
+        raise HTTPException(status_code=503, detail="Gemini API unavailable, try again shortly.")
+    except errors.APIError as e:
+        raise HTTPException(status_code=502, detail=str(e))
     clean = response.text or ""
     clean_json = clean.replace("```json", "").replace("```", "").strip()
     return {"status": "received", "text": json.loads(clean_json)}
