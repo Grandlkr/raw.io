@@ -281,6 +281,7 @@ Actions
     }
 
     function submitNote() {
+        if (isRecording) { toggleRecording(); return; }
         const text = document.querySelector('#raw_txt').innerText;
         console.log('[submit] Submit button pressed, sending:', text);
         sendNotes(text);

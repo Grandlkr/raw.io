@@ -1,5 +1,7 @@
 const SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-const speechAvailable = !!SpeechAPI;
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+              (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const speechAvailable = !!SpeechAPI && !isIOS;
 
 let speak = null;
 let isRecording = false;
@@ -156,6 +158,7 @@ if (speechAvailable) {
 document.querySelector('#raw_txt').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
+        if (isRecording) { toggleRecording(); return; }
         const text = document.querySelector('#raw_txt').innerText;
         console.log('[keyboard] Enter pressed, sending:', text);
         sendNotes(text);
