@@ -227,6 +227,10 @@ Actions
 <button class="w-16 h-16 rounded-full bg-primary text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all" id="mic-btn" onclick="toggleRecording()" title="Voice Record">
 <span class="material-symbols-outlined text-3xl" id="mic-icon" style="font-variation-settings: 'FILL' 1;">mic</span>
 </button>
+<!-- Submit button — note page only -->
+<button class="w-14 h-14 rounded-full bg-[#3a302a] text-[#faf5ee] shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all" id="submit-btn" onclick="submitNote()" title="Submit Note">
+<span class="material-symbols-outlined text-2xl" id="submit-icon" style="font-variation-settings: 'FILL' 1;">arrow_upward</span>
+</button>
 <!-- New File button — history page only, hidden by default -->
 <button class="w-16 h-16 rounded-full bg-primary text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all hidden" id="main-fab" onclick="newNote()" title="New File">
 <span class="material-symbols-outlined text-3xl" id="main-fab-icon" style="font-variation-settings: 'FILL' 1;">note_add</span>
@@ -260,6 +264,7 @@ Actions
         navHistory.classList.toggle('text-stone-400', isNote);
 
         document.getElementById('mic-btn').classList.toggle('hidden', !isNote);
+        document.getElementById('submit-btn').classList.toggle('hidden', !isNote);
         document.getElementById('main-fab').classList.toggle('hidden', isNote);
 
         if (!isNote) renderHistory();
@@ -273,6 +278,12 @@ Actions
             btn.classList.toggle('active', btn.getAttribute('data-view') === viewId);
         });
         window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function submitNote() {
+        const text = document.querySelector('#raw_txt').innerText;
+        console.log('[submit] Submit button pressed, sending:', text);
+        sendNotes(text);
     }
 
     function newNote() {

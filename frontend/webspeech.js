@@ -1,12 +1,17 @@
-const speech = window.SpeechRecognition || window.webkitSpeechRecognition;
-const speak = new speech();
-speak.continuous = true;
-speak.lang = 'en-US';
-speak.interimResults = true;  // show words live as they're spoken
-speak.maxAlternatives = 1;
+const SpeechAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+const speechAvailable = !!SpeechAPI;
 
+let speak = null;
 let isRecording = false;
-let savedTranscript = '';  // accumulates across silence-restart sessions
+let savedTranscript = '';
+
+if (speechAvailable) {
+    speak = new SpeechAPI();
+    speak.continuous = true;
+    speak.lang = 'en-US';
+    speak.interimResults = true;
+    speak.maxAlternatives = 1;
+}
 
 function saveNotes(note) {
     let rawio_notes = localStorage.getItem('rawio_notes');
@@ -24,6 +29,7 @@ function getAllnotes() {
 function sendNotes(text) {
     if (!text.trim()) { console.warn('[send] Empty text, aborting.'); return; }
     document.querySelector('#mic-icon').innerText = 'hourglass_empty';
+    document.querySelector('#submit-icon').innerText = 'hourglass_empty';
     console.log('[send] Sending to API:', text);
 
     fetch('https://raw-io-1.onrender.com/', {
@@ -39,7 +45,6 @@ function sendNotes(text) {
         document.querySelector('#raw_txt').innerText = data.text.punctuated_raw;
         document.querySelector('#note-date').innerText = new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-        // Key insights
         const keyEl = document.querySelector('#key_txt');
         const ul = document.createElement('ul');
         ul.className = 'space-y-6 list-none';
@@ -52,10 +57,8 @@ function sendNotes(text) {
         keyEl.innerHTML = '';
         keyEl.appendChild(ul);
 
-        // Refined text
         document.querySelector('#refined_txt').innerText = data.text.refined;
 
-        // Actions
         const actionEl = document.querySelector('#action_txt');
         const ul2 = document.createElement('ul');
         ul2.className = 'space-y-3 list-none';
@@ -68,7 +71,6 @@ function sendNotes(text) {
         actionEl.innerHTML = '';
         actionEl.appendChild(ul2);
 
-        // Persist to localStorage
         saveNotes({
             title: data.text.title,
             raw: data.text.punctuated_raw,
@@ -78,21 +80,26 @@ function sendNotes(text) {
         });
 
         document.querySelector('#mic-icon').innerText = 'mic';
+        document.querySelector('#submit-icon').innerText = 'arrow_upward';
         console.log('[send] Note saved to localStorage, switching to refined view.');
 
         if (typeof switchView === 'function') switchView('refined');
     })
-    .catch(err => console.error('[send] Fetch failed:', err));
+    .catch(err => {
+        console.error('[send] Fetch failed:', err);
+        document.querySelector('#mic-icon').innerText = 'mic';
+        document.querySelector('#submit-icon').innerText = 'arrow_upward';
+    });
 }
 
 function toggleRecording() {
+    if (!speechAvailable) return;
     if (!isRecording) {
         speak.start();
         isRecording = true;
         savedTranscript = '';
         document.querySelector('#raw_txt').innerText = '';
         document.querySelector('#mic-icon').innerText = 'radio_button_checked';
-        
         console.log('[mic] Recording started.');
     } else {
         speak.stop();
@@ -102,43 +109,50 @@ function toggleRecording() {
     }
 }
 
-speak.onresult = (event) => {
-    let interimText = '';
-    let finalText = '';
+if (speechAvailable) {
+    speak.onresult = (event) => {
+        let interimText = '';
+        let finalText = '';
 
-    for (let i = 0; i < event.results.length; i++) {
-        if (event.results[i].isFinal) {
-            finalText += event.results[i][0].transcript + ' ';
-        } else {
-            interimText += event.results[i][0].transcript;
+        for (let i = 0; i < event.results.length; i++) {
+            if (event.results[i].isFinal) {
+                finalText += event.results[i][0].transcript + ' ';
+            } else {
+                interimText += event.results[i][0].transcript;
+            }
         }
+
+        document.querySelector('#raw_txt').innerText = savedTranscript + finalText + interimText;
+        console.log('[mic] Transcript — final:', finalText.trim(), '| interim:', interimText.trim());
+    };
+
+    speak.onend = () => {
+        if (isRecording) {
+            savedTranscript = document.querySelector('#raw_txt').innerText;
+            console.log('[mic] Silence detected, restarting. Saved so far:', savedTranscript);
+            setTimeout(() => {
+                try { speak.start(); } catch (e) { console.warn('[mic] Restart failed:', e); }
+            }, 100);
+        } else {
+            console.log('[mic] Recognition ended, processing text.');
+            const text = document.querySelector('#raw_txt').innerText;
+            sendNotes(text);
+        }
+    };
+
+    speak.onerror = (e) => {
+        console.error('[mic] Recognition error:', e.error);
+    };
+} else {
+    // Grey out and disable the mic button on browsers without SpeechRecognition (e.g. iOS Safari)
+    const micBtn = document.getElementById('mic-btn');
+    if (micBtn) {
+        micBtn.disabled = true;
+        micBtn.classList.add('opacity-40', 'cursor-not-allowed', 'pointer-events-none');
+        micBtn.title = 'Voice input not supported in this browser';
     }
+}
 
-    // Show saved (from previous sessions) + this session's finals + live interim
-    document.querySelector('#raw_txt').innerText = savedTranscript + finalText + interimText;
-    console.log('[mic] Transcript — final:', finalText.trim(), '| interim:', interimText.trim());
-};
-
-speak.onend = () => {
-    if (isRecording) {
-        // Save current transcript before restarting so it isn't lost
-        savedTranscript = document.querySelector('#raw_txt').innerText;
-        console.log('[mic] Silence detected, restarting. Saved so far:', savedTranscript);
-        setTimeout(() => {
-            try { speak.start(); } catch (e) { console.warn('[mic] Restart failed:', e); }
-        }, 100);
-    } else {
-        console.log('[mic] Recognition ended, processing text.');
-        const text = document.querySelector('#raw_txt').innerText;
-        sendNotes(text);
-    }
-};
-
-speak.onerror = (e) => {
-    console.error('[mic] Recognition error:', e.error);
-};
-
-// Keyboard input: Enter to send
 document.querySelector('#raw_txt').addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
