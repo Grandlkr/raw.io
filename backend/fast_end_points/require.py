@@ -45,6 +45,6 @@ async def process(note : Raw):
     contents=note.notes
     )
     #json clean up
-    clean = response.text
+    clean = response.text or '{}'
     clean_json = clean.replace("```json", "").replace("```", "").strip()
     return {"status": "received", "text": json.loads(clean_json)}

@@ -5,6 +5,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
 <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -107,9 +108,41 @@
             font-size: 13px;
             font-variation-settings: 'FILL' 1;
         }
+        @keyframes rawio-spin { to { transform: rotate(360deg); } }
+        .rawio-spin { display: inline-block; animation: rawio-spin 0.9s linear infinite; }
+        .rawio-disabled { opacity: 0.5; pointer-events: none; }
     </style>
 </head>
 <body class="bg-background text-on-background min-h-screen font-body selection:bg-primary-container selection:text-on-primary-container">
+
+<!-- AUTH GATE -->
+<div class="fixed inset-0 z-[100] bg-background flex items-center justify-center px-6" id="auth-gate">
+<div class="w-full max-w-sm">
+<div class="text-center mb-8">
+<span class="text-3xl font-serif italic text-[#c2652a]">raw.io</span>
+<p class="mt-2 text-sm text-stone-500" id="auth-subtitle">Sign in to sync your notes across devices.</p>
+</div>
+<form class="space-y-4" id="auth-form">
+<div>
+<label class="block text-xs uppercase tracking-widest font-semibold text-stone-500 mb-1">Email</label>
+<input class="w-full rounded-xl border border-outline-variant/50 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40" id="auth-email" required="" type="email" autocomplete="email">
+</div>
+<div>
+<label class="block text-xs uppercase tracking-widest font-semibold text-stone-500 mb-1">Password</label>
+<input class="w-full rounded-xl border border-outline-variant/50 bg-white px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/40" id="auth-password" required="" type="password" minlength="6" autocomplete="current-password">
+</div>
+<p class="hidden text-sm text-error" id="auth-error"></p>
+<button class="w-full rounded-full bg-primary text-white font-semibold py-3 text-sm hover:opacity-90 transition-opacity disabled:opacity-60" id="auth-submit" type="submit">Sign in</button>
+</form>
+<p class="text-center text-sm text-stone-500 mt-6">
+<span id="auth-toggle-prompt">Don't have an account?</span>
+<button class="text-primary font-semibold ml-1" id="auth-toggle" type="button">Sign up</button>
+</p>
+</div>
+</div>
+
+<!-- TOAST -->
+<div class="hidden fixed left-1/2 -translate-x-1/2 bottom-28 z-[200] max-w-sm w-[90%] bg-[#3a302a] text-[#faf5ee] text-sm rounded-2xl px-5 py-3 text-center shadow-xl transition-opacity duration-300" id="toast"></div>
 
 <header class="bg-[#faf5ee]/90 dark:bg-stone-950/90 backdrop-blur-sm border-b border-[#d8d0c8]/60 dark:border-stone-800 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
 <div class="flex items-center gap-4">
@@ -121,8 +154,9 @@
 <button class="tab-btn px-6 py-1.5 rounded-full text-sm font-semibold sans-label text-stone-500 hover:text-primary transition-colors" data-view="refined" onclick="switchView('refined')">Refined</button>
 <!-- <button class="tab-btn px-6 py-1.5 rounded-full text-sm font-semibold sans-label text-stone-500 hover:text-primary transition-colors" data-view="map" onclick="switchView('map')">Map</button> -->
 </div>
-<div class="flex items-center gap-4">
-<!-- <span class="material-symbols-outlined text-[#c2652a] cursor-pointer">settings</span> -->
+<div class="flex items-center gap-3">
+<span class="hidden sm:inline text-xs text-stone-400 sans-label" id="user-email"></span>
+<button class="text-xs uppercase tracking-widest font-semibold text-stone-500 hover:text-primary transition-colors sans-label" id="signout-btn" title="Sign out">Sign out</button>
 </div>
 </header>
 
@@ -143,6 +177,7 @@
 <div class="bg-surface-container-low p-6 rounded-2xl border border-outline-variant/40">
 <p class="text-sm leading-relaxed text-on-surface italic" id="raw_txt" contenteditable="true"></p>
 </div>
+<p class="hidden text-xs text-right text-error sans-label" id="char-count"></p>
 </div>
 </div>
 
@@ -288,6 +323,7 @@ Actions
     }
 
     function newNote() {
+        currentNoteId = null;
         document.getElementById('note-title').innerText = '';
         document.getElementById('note-title-refined').innerText = '';
         document.getElementById('raw_txt').innerText = '';
@@ -295,15 +331,17 @@ Actions
         document.getElementById('key_txt').innerHTML = '<ul class="space-y-6 list-none"></ul>';
         document.getElementById('refined_txt').innerHTML = '';
         document.getElementById('action_txt').innerHTML = '';
+        updateCharCount();
         showPage('note');
         switchView('draft');
     }
 
-    function renderHistory() {
-        const notes = getAllnotes();
+    async function renderHistory() {
         const list = document.getElementById('history-list');
         const empty = document.getElementById('history-empty');
         list.innerHTML = '';
+
+        const notes = await fetchHistory();
 
         if (notes.length === 0) {
             empty.classList.remove('hidden');
@@ -311,10 +349,10 @@ Actions
         }
         empty.classList.add('hidden');
 
-        [...notes].reverse().forEach(note => {
-            const date = new Date(note.id).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        notes.forEach(note => {
+            const date = new Date(note.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
             const card = document.createElement('div');
-            card.className = 'bg-white/70 rounded-2xl border border-outline-variant/40 p-6 cursor-pointer hover:shadow-md transition-all active:scale-[0.99]';
+            card.className = 'relative bg-white/70 rounded-2xl border border-outline-variant/40 p-6 cursor-pointer hover:shadow-md transition-all active:scale-[0.99]';
             card.innerHTML = `
                 <div class="flex items-start justify-between gap-4 mb-3">
                     <h3 class="font-headline text-xl font-semibold text-on-background leading-tight">${note.title || 'Untitled'}</h3>
@@ -323,51 +361,48 @@ Actions
                         Refined
                     </span>
                 </div>
-                <p class="text-sm text-on-surface-variant leading-relaxed mb-3" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${note.raw || ''}</p>
+                <p class="text-sm text-on-surface-variant leading-relaxed mb-3 pr-8" style="display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;">${note.punctuated_raw || ''}</p>
                 <p class="text-[11px] text-stone-400" style="font-family: Manrope, sans-serif;">${date}</p>
+                <button class="absolute bottom-5 right-5 text-stone-400 hover:text-error transition-colors" title="Delete note" aria-label="Delete note">
+                    <span class="material-symbols-outlined" style="font-size:20px;">delete</span>
+                </button>
             `;
             card.onclick = () => loadNote(note);
+            card.querySelector('button').onclick = (e) => {
+                e.stopPropagation();
+                deleteNoteCard(note, card);
+            };
             list.appendChild(card);
         });
+    }
+
+    async function deleteNoteCard(note, card) {
+        if (!confirm('Delete this note? This cannot be undone.')) return;
+        const ok = await deleteNoteRemote(note.id);
+        if (!ok) return;
+        if (currentNoteId === note.id) currentNoteId = null;
+        card.remove();
+        if (!document.getElementById('history-list').children.length) {
+            document.getElementById('history-empty').classList.remove('hidden');
+        }
     }
 
     function loadNote(note) {
         document.getElementById('note-title').innerText = note.title || '';
         document.getElementById('note-title-refined').innerText = note.title || '';
-        document.getElementById('raw_txt').innerText = note.raw || '';
-        document.getElementById('note-date').innerText = new Date(note.id).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+        document.getElementById('raw_txt').innerText = note.punctuated_raw || '';
+        document.getElementById('note-date').innerText = new Date(note.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
-        const keyEl = document.getElementById('key_txt');
-        const ul = document.createElement('ul');
-        ul.className = 'space-y-6 list-none';
-        (note.insights || []).forEach((insight, i) => {
-            const li = document.createElement('li');
-            li.className = 'flex gap-4';
-            li.innerHTML = `<span class="text-primary font-headline text-2xl italic flex-shrink-0">0${i + 1}</span><p class="text-sm leading-relaxed text-on-surface">${insight}</p>`;
-            ul.appendChild(li);
-        });
-        keyEl.innerHTML = '';
-        keyEl.appendChild(ul);
-
+        renderInsights(note.insights || []);
         document.getElementById('refined_txt').innerText = note.refined || '';
+        renderActions(note.actions || []);
 
-        const actionEl = document.getElementById('action_txt');
-        const ul2 = document.createElement('ul');
-        ul2.className = 'space-y-3 list-none';
-        (note.actions || []).forEach(action => {
-            const li = document.createElement('li');
-            li.className = 'flex items-start gap-3 text-sm text-on-surface';
-            li.innerHTML = `<span class="material-symbols-outlined text-primary mt-0.5" style="font-size:16px;font-variation-settings:'FILL' 1;">task_alt</span>${action}`;
-            ul2.appendChild(li);
-        });
-        actionEl.innerHTML = '';
-        actionEl.appendChild(ul2);
+        currentNoteId = note.id;
+        updateCharCount();
 
         showPage('note');
         switchView('refined');
     }
-
-    document.addEventListener('DOMContentLoaded', renderHistory);
 </script>
 <script src="webspeech.js"></script>
 

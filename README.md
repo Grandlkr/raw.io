@@ -20,7 +20,7 @@ Not a structured notes tool like Notion. A thinking partner.
    - Generates a title
    - Produces a **refined** version — not a summary, but your thoughts finished and connected
 3. **Review across views** — Draft (your cleaned raw text), Refined (the processed thinking), and Map (coming soon)
-4. **Notes persist locally** — saved to your browser via localStorage
+4. **Sign in to sync** — notes are saved to Supabase under your account, so they carry over across devices and the mobile app
 
 ---
 
@@ -30,7 +30,7 @@ Not a structured notes tool like Notion. A thinking partner.
 - **Voice capture** — Web Speech API (browser-native)
 - **Backend** — FastAPI (Python)
 - **AI** — Google Gemini API
-- **Storage** — localStorage (browser-based, per-device)
+- **Auth & storage** — Supabase (email/password auth, Postgres with row-level security)
 
 ---
 
@@ -48,11 +48,16 @@ pip install -r requirements.txt
 Create a `.env` file in the backend folder:
 ```
 GEMINI_API_KEY=your_key_here
+SUPABASE_URL=your_supabase_project_url
+SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
-Run the server:
+The backend verifies sign-in tokens from the web and mobile apps against Supabase's public JWKS endpoint (`{SUPABASE_URL}/auth/v1/.well-known/jwks.json`) — no shared secret needed, since this project signs tokens with Supabase's asymmetric (ES256) JWT keys.
+
+Run the server (the frontend expects it on port 8000 when testing locally):
 ```bash
-uvicorn main:app --reload
+cd fast_end_points
+uvicorn req:app --reload --port 8000
 ```
 
 ### Frontend
@@ -64,7 +69,7 @@ cd frontend
 python -m http.server 5501
 ```
 
-Then open `http://127.0.0.1:5501/index.html` in Chrome.
+Then open `http://127.0.0.1:5501/index.html` in Chrome. When served from `localhost`/`127.0.0.1`, the page automatically points at the local backend (`http://127.0.0.1:8000`) instead of production.
 
 ---
 
@@ -76,6 +81,7 @@ raw.io is an active work-in-progress portfolio project. Current focus areas:
 - [x] History screen for saved notes
 - [x] Reset / new note flow
 - [x] Bullet point styling refinement
+- [x] Account sign-in and cross-device sync via Supabase (web + mobile)
 - [ ] Mind map visualisation of connected ideas
 
 > **Note:** The backend runs on Render's free tier and may have a cold-start delay of ~30–60 seconds on the first request after a period of inactivity.
