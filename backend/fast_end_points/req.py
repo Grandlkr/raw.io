@@ -25,6 +25,14 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
 SUPABASE_URL = os.getenv("SUPABASE_URL")
 SUPABASE_ANON_KEY = os.getenv("SUPABASE_ANON_KEY")
 
+logger.info(
+    "env check: GEMINI_API_KEY=%s SUPABASE_URL=%s SUPABASE_ANON_KEY=%s all_keys=%s",
+    "set(%d chars)" % len(GEMINI_API_KEY) if GEMINI_API_KEY else "MISSING",
+    "set(%d chars)" % len(SUPABASE_URL) if SUPABASE_URL else "MISSING",
+    "set(%d chars)" % len(SUPABASE_ANON_KEY) if SUPABASE_ANON_KEY else "MISSING",
+    sorted(k for k in os.environ if "SUPABASE" in k.upper() or "GEMINI" in k.upper()),
+)
+
 if not GEMINI_API_KEY:
     raise RuntimeError("GEMINI_API_KEY is not set")
 if not SUPABASE_URL or not SUPABASE_ANON_KEY:
