@@ -38,7 +38,7 @@ function showToast(message, isError = false) {
     clearTimeout(toastTimer);
     el.textContent = message;
     el.classList.toggle('bg-error', isError);
-    el.classList.toggle('bg-[#3a302a]', !isError);
+    el.classList.toggle('bg-[var(--rawio-font)]', !isError);
     el.classList.remove('hidden');
     requestAnimationFrame(() => { el.style.opacity = '1'; });
     toastTimer = setTimeout(() => {
@@ -103,14 +103,233 @@ function setProcessing(isProcessing) {
     [micBtn, submitBtn].forEach(el => el.classList.toggle('rawio-disabled', isProcessing));
 }
 
+// ---- Theme (highlight/background/font tokens, matching the mobile app) ----
+const DEFAULT_THEME = { highlight: '#c2652a', background: '#faf5ee', font: '#3a302a' };
+
+const HIGHLIGHT_SWATCHES = [
+    '#c2652a', '#b8492f', '#a8722e', '#8a6d3b', '#6b7d4f',
+    '#3f7d6b', '#4a6f8a', '#5c5a8a', '#8a4a6b', '#a15c8f',
+];
+const BACKGROUND_SWATCHES = [
+    '#faf5ee', '#f5efe2', '#f0e9dd', '#ede4d3', '#e9e2ec',
+    '#e3ece6', '#eae1d8', '#231f1c', '#242220', '#1f2422',
+];
+const FONT_SWATCHES = [
+    '#3a302a', '#2b241f', '#4a3c30', '#544539', '#3d3a2f',
+    '#33302f', '#2f2a3a', '#f2ece1', '#e8e1d4', '#d8cfc0',
+];
+
+function hexToRgb(hex) {
+    let h = hex.replace('#', '');
+    if (h.length === 3) h = h.split('').map(c => c + c).join('');
+    const num = parseInt(h, 16);
+    return [(num >> 16) & 255, (num >> 8) & 255, num & 255];
+}
+function withAlpha(hex, alpha) {
+    const [r, g, b] = hexToRgb(hex);
+    return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+function mixColors(hexA, hexB, weightB) {
+    const [r1, g1, b1] = hexToRgb(hexA);
+    const [r2, g2, b2] = hexToRgb(hexB);
+    const r = Math.round(r1 * (1 - weightB) + r2 * weightB);
+    const g = Math.round(g1 * (1 - weightB) + g2 * weightB);
+    const b = Math.round(b1 * (1 - weightB) + b2 * weightB);
+    return `rgb(${r}, ${g}, ${b})`;
+}
+function isDarkColor(hex) {
+    const [r, g, b] = hexToRgb(hex);
+    return (0.299 * r + 0.587 * g + 0.114 * b) / 255 < 0.5;
+}
+
+function applyTheme(tokens) {
+    const { highlight, background, font } = tokens;
+    const root = document.documentElement.style;
+    root.setProperty('--rawio-highlight', highlight);
+    root.setProperty('--rawio-background', background);
+    root.setProperty('--rawio-font', font);
+    root.setProperty('--rawio-highlight-soft', withAlpha(highlight, 0.14));
+    root.setProperty('--rawio-surface', mixColors(background, font, 0.045));
+    root.setProperty('--rawio-surface-raised', mixColors(background, font, 0.08));
+    root.setProperty('--rawio-border', withAlpha(font, 0.12));
+    root.setProperty('--rawio-muted', withAlpha(font, 0.58));
+    root.setProperty('--rawio-placeholder', withAlpha(font, 0.36));
+    root.setProperty('--rawio-on-highlight', isDarkColor(highlight) ? '#ffffff' : font);
+    root.setProperty('--rawio-header-bg', withAlpha(background, 0.9));
+    root.setProperty('--rawio-nav-bg', withAlpha(background, 0.95));
+}
+
+// ---- Profile (display name + theme, persisted to the same `profiles` table the mobile app uses) ----
+let profile = { displayName: '', theme: DEFAULT_THEME };
+
+async function fetchProfile() {
+    if (!currentSession) return;
+    const { data, error } = await sb
+        .from('profiles')
+        .select('display_name, theme_highlight, theme_background, theme_font')
+        .eq('id', currentSession.user.id)
+        .maybeSingle();
+
+    if (error || !data) {
+        await sb.from('profiles').upsert({ id: currentSession.user.id });
+        profile = { displayName: '', theme: DEFAULT_THEME };
+    } else {
+        profile = {
+            displayName: data.display_name || '',
+            theme: {
+                highlight: data.theme_highlight || DEFAULT_THEME.highlight,
+                background: data.theme_background || DEFAULT_THEME.background,
+                font: data.theme_font || DEFAULT_THEME.font,
+            },
+        };
+    }
+    applyTheme(profile.theme);
+    renderProfilePanel();
+}
+
+async function updateDisplayName(name) {
+    profile.displayName = name;
+    if (currentSession) await sb.from('profiles').upsert({ id: currentSession.user.id, display_name: name });
+    renderProfilePanel();
+}
+
+async function updateTheme(patch) {
+    profile.theme = { ...profile.theme, ...patch };
+    applyTheme(profile.theme);
+    renderProfilePanel();
+    if (currentSession) {
+        await sb.from('profiles').upsert({
+            id: currentSession.user.id,
+            theme_highlight: profile.theme.highlight,
+            theme_background: profile.theme.background,
+            theme_font: profile.theme.font,
+        });
+    }
+}
+
+function resetTheme() {
+    updateTheme(DEFAULT_THEME);
+}
+
+function renderSwatches(containerId, swatches, currentValue, onPick) {
+    const container = document.getElementById(containerId);
+    container.innerHTML = '';
+    swatches.forEach(hex => {
+        const btn = document.createElement('button');
+        const selected = hex.toLowerCase() === currentValue.toLowerCase();
+        btn.type = 'button';
+        btn.className = 'swatch-btn' + (selected ? ' selected' : '');
+        btn.style.background = `linear-gradient(135deg, ${mixColors(hex, '#ffffff', 0.4)}, ${hex})`;
+        if (selected) {
+            btn.innerHTML = `<span class="material-symbols-outlined" style="font-size:16px;color:${isDarkColor(hex) ? '#ffffff' : '#000000'};">check</span>`;
+        }
+        btn.onclick = () => onPick(hex);
+        container.appendChild(btn);
+    });
+}
+
+function renderProfilePanel() {
+    const nameDisplay = document.getElementById('profile-name-display');
+    const nameInput = document.getElementById('profile-name-input');
+    nameDisplay.textContent = profile.displayName || 'Add your name';
+    nameInput.value = profile.displayName;
+    document.getElementById('profile-email').textContent = currentSession?.user?.email ?? '';
+
+    const { highlight, background, font } = profile.theme;
+    renderSwatches('swatches-highlight', HIGHLIGHT_SWATCHES, highlight, (hex) => updateTheme({ highlight: hex }));
+    renderSwatches('swatches-background', BACKGROUND_SWATCHES, background, (hex) => updateTheme({ background: hex }));
+    renderSwatches('swatches-font', FONT_SWATCHES, font, (hex) => updateTheme({ font: hex }));
+
+    const previewCard = document.getElementById('theme-preview-card');
+    previewCard.style.background = background;
+    previewCard.style.borderColor = withAlpha(font, 0.12);
+    document.getElementById('theme-preview-title').style.color = font;
+    document.getElementById('theme-preview-body').style.color = font;
+    const chip = document.getElementById('theme-preview-chip');
+    chip.style.background = highlight;
+    chip.style.color = isDarkColor(highlight) ? '#ffffff' : font;
+}
+
+async function refreshNoteCount() {
+    const notes = await fetchHistory();
+    const el = document.getElementById('profile-note-count');
+    if (el) el.textContent = `${notes.length} ${notes.length === 1 ? 'note' : 'notes'} saved`;
+    return notes;
+}
+
+function openProfilePanel() {
+    document.getElementById('profile-overlay').classList.remove('hidden');
+    renderProfilePanel();
+    refreshNoteCount();
+}
+function closeProfilePanel() {
+    document.getElementById('profile-overlay').classList.add('hidden');
+}
+
+document.getElementById('profile-btn')?.addEventListener('click', openProfilePanel);
+document.getElementById('profile-close')?.addEventListener('click', closeProfilePanel);
+document.getElementById('profile-backdrop')?.addEventListener('click', closeProfilePanel);
+
+document.getElementById('profile-name-display')?.addEventListener('click', () => {
+    document.getElementById('profile-name-display').classList.add('hidden');
+    const input = document.getElementById('profile-name-input');
+    input.classList.remove('hidden');
+    input.focus();
+});
+function saveProfileName() {
+    const input = document.getElementById('profile-name-input');
+    input.classList.add('hidden');
+    document.getElementById('profile-name-display').classList.remove('hidden');
+    const trimmed = input.value.trim();
+    if (trimmed !== profile.displayName) updateDisplayName(trimmed);
+}
+document.getElementById('profile-name-input')?.addEventListener('blur', saveProfileName);
+document.getElementById('profile-name-input')?.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); document.getElementById('profile-name-input').blur(); }
+});
+
+document.getElementById('theme-reset-btn')?.addEventListener('click', resetTheme);
+
+document.getElementById('export-notes-btn')?.addEventListener('click', async () => {
+    const notes = await refreshNoteCount();
+    const blob = new Blob([JSON.stringify(notes, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `raw-io-notes-${Date.now()}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+});
+
+document.getElementById('clear-notes-btn')?.addEventListener('click', async () => {
+    if (!currentSession) return;
+    if (!confirm('This will permanently delete all your notes. Are you sure?')) return;
+    try {
+        const response = await fetch(`${API_URL}/notes`, {
+            method: 'DELETE',
+            headers: { Authorization: `Bearer ${currentSession.access_token}` },
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.detail || 'Could not clear notes.');
+        currentNoteId = null;
+        showToast('All notes cleared.');
+        refreshNoteCount();
+        if (!document.getElementById('page-history').classList.contains('hidden')) renderHistory();
+    } catch (err) {
+        showToast(err.message || 'Could not clear notes.', true);
+    }
+});
+
+document.getElementById('profile-signout-btn')?.addEventListener('click', () => {
+    closeProfilePanel();
+    sb.auth.signOut();
+});
+
 // ---- Auth ----
 function showAuthGate(show) {
     document.getElementById('auth-gate').classList.toggle('hidden', !show);
-}
-
-function updateAuthUI() {
-    const emailEl = document.getElementById('user-email');
-    if (emailEl) emailEl.textContent = currentSession?.user?.email ?? '';
 }
 
 function setAuthMode(mode) {
@@ -156,18 +375,24 @@ async function handleAuthSubmit(e) {
 
 document.getElementById('auth-form')?.addEventListener('submit', handleAuthSubmit);
 document.getElementById('auth-toggle')?.addEventListener('click', () => setAuthMode(authMode === 'signin' ? 'signup' : 'signin'));
-document.getElementById('signout-btn')?.addEventListener('click', () => sb.auth.signOut());
 
 sb.auth.onAuthStateChange((_event, session) => {
+    const signedOut = !session && !!currentSession;
     currentSession = session;
     showAuthGate(!session);
-    updateAuthUI();
+    if (session) {
+        fetchProfile();
+    } else if (signedOut) {
+        profile = { displayName: '', theme: DEFAULT_THEME };
+        applyTheme(DEFAULT_THEME);
+        closeProfilePanel();
+    }
 });
 
 sb.auth.getSession().then(({ data }) => {
     currentSession = data.session;
     showAuthGate(!currentSession);
-    updateAuthUI();
+    if (currentSession) fetchProfile();
 });
 
 // ---- Notes: process + history (persisted server-side in Supabase) ----

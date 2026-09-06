@@ -14,39 +14,39 @@
                     "colors": {
                         "surface-tint": "#c2652a",
                         "on-secondary": "#ffffff",
-                        "surface-container-low": "#f6f0e8",
+                        "surface-container-low": "var(--rawio-surface)",
                         "surface-bright": "#faf5ee",
-                        "on-primary-container": "#fbe8d8",
-                        "surface-container-high": "#ece6dc",
-                        "surface": "#faf5ee",
+                        "on-primary-container": "var(--rawio-font)",
+                        "surface-container-high": "var(--rawio-surface-raised)",
+                        "surface": "var(--rawio-background)",
                         "secondary-fixed-dim": "#cec6be",
                         "error": "#c0392b",
                         "primary-fixed": "#fbe8d8",
                         "on-error-container": "#7a1a10",
-                        "background": "#faf5ee",
-                        "on-background": "#3a302a",
+                        "background": "var(--rawio-background)",
+                        "on-background": "var(--rawio-font)",
                         "on-tertiary-container": "#3a2020",
                         "surface-dim": "#dcd6cc",
                         "on-primary-fixed": "#401a08",
                         "error-container": "#fce4e0",
-                        "on-surface-variant": "#605850",
+                        "on-surface-variant": "var(--rawio-muted)",
                         "tertiary": "#8c3c3c",
                         "on-primary-fixed-variant": "#8a4518",
                         "tertiary-fixed-dim": "#e8a0a0",
-                        "surface-container": "#f2ece4",
+                        "surface-container": "var(--rawio-surface-raised)",
                         "on-tertiary": "#ffffff",
-                        "outline-variant": "#d8d0c8",
+                        "outline-variant": "var(--rawio-border)",
                         "inverse-surface": "#3a302a",
-                        "primary-container": "#e08850",
+                        "primary-container": "var(--rawio-highlight-soft)",
                         "on-tertiary-fixed-variant": "#6e3030",
-                        "primary": "#c2652a",
+                        "primary": "var(--rawio-highlight)",
                         "surface-container-highest": "#e6e0d6",
                         "secondary": "#78706a",
-                        "on-surface": "#3a302a",
+                        "on-surface": "var(--rawio-font)",
                         "inverse-on-surface": "#faf5ee",
                         "primary-fixed-dim": "#f0a878",
                         "on-secondary-container": "#605850",
-                        "on-primary": "#ffffff",
+                        "on-primary": "var(--rawio-on-highlight)",
                         "surface-variant": "#ece6dc",
                         "outline": "#9a9088",
                         "surface-container-lowest": "#ffffff",
@@ -76,19 +76,33 @@
         }
     </script>
 <style>
+        :root {
+            --rawio-highlight: #c2652a;
+            --rawio-background: #faf5ee;
+            --rawio-font: #3a302a;
+            --rawio-highlight-soft: rgba(194, 101, 42, 0.14);
+            --rawio-surface: #f6f0e8;
+            --rawio-surface-raised: #ece6dc;
+            --rawio-border: rgba(58, 48, 42, 0.12);
+            --rawio-muted: rgba(58, 48, 42, 0.58);
+            --rawio-placeholder: rgba(58, 48, 42, 0.36);
+            --rawio-on-highlight: #ffffff;
+            --rawio-header-bg: rgba(250, 245, 238, 0.9);
+            --rawio-nav-bg: rgba(250, 245, 238, 0.95);
+        }
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
         .serif-title { font-family: 'EB Garamond', serif; }
         .sans-label { font-family: 'Manrope', sans-serif; }
-        body { min-height: max(884px, 100dvh); }
+        body { min-height: max(884px, 100dvh); background: var(--rawio-background); }
         .view-content { display: none; }
         .view-content.active { display: block; }
         .tab-btn.active {
-            background-color: white;
-            color: #c2652a;
+            background-color: var(--rawio-background);
+            color: var(--rawio-highlight);
             box-shadow: 0 1px 2px rgba(0,0,0,0.05);
-            border: 1px solid rgba(216, 208, 200, 0.4);
+            border: 1px solid var(--rawio-border);
             font-weight: 800;
         }
         .section-tag {
@@ -99,8 +113,8 @@
             text-transform: uppercase;
             letter-spacing: 0.15em;
             font-weight: 700;
-            color: #c2652a;
-            background: rgba(194, 101, 42, 0.1);
+            color: var(--rawio-highlight);
+            background: var(--rawio-highlight-soft);
             padding: 0.25rem 0.875rem;
             border-radius: 9999px;
         }
@@ -111,6 +125,18 @@
         @keyframes rawio-spin { to { transform: rotate(360deg); } }
         .rawio-spin { display: inline-block; animation: rawio-spin 0.9s linear infinite; }
         .rawio-disabled { opacity: 0.5; pointer-events: none; }
+        .swatch-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 9999px;
+            border: 2px solid transparent;
+            flex-shrink: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .swatch-btn.selected { border-color: var(--rawio-font); }
     </style>
 </head>
 <body class="bg-background text-on-background min-h-screen font-body selection:bg-primary-container selection:text-on-primary-container">
@@ -119,7 +145,7 @@
 <div class="fixed inset-0 z-[100] bg-background flex items-center justify-center px-6" id="auth-gate">
 <div class="w-full max-w-sm">
 <div class="text-center mb-8">
-<span class="text-3xl font-serif italic text-[#c2652a]">raw.io</span>
+<span class="text-3xl font-serif italic text-primary">raw.io</span>
 <p class="mt-2 text-sm text-stone-500" id="auth-subtitle">Sign in to sync your notes across devices.</p>
 </div>
 <form class="space-y-4" id="auth-form">
@@ -142,22 +168,21 @@
 </div>
 
 <!-- TOAST -->
-<div class="hidden fixed left-1/2 -translate-x-1/2 bottom-28 z-[200] max-w-sm w-[90%] bg-[#3a302a] text-[#faf5ee] text-sm rounded-2xl px-5 py-3 text-center shadow-xl transition-opacity duration-300" id="toast"></div>
+<div class="hidden fixed left-1/2 -translate-x-1/2 bottom-28 z-[200] max-w-sm w-[90%] bg-[var(--rawio-font)] text-[var(--rawio-background)] text-sm rounded-2xl px-5 py-3 text-center shadow-xl transition-opacity duration-300" id="toast"></div>
 
-<header class="bg-[#faf5ee]/90 dark:bg-stone-950/90 backdrop-blur-sm border-b border-[#d8d0c8]/60 dark:border-stone-800 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
+<header class="bg-[var(--rawio-header-bg)] dark:bg-stone-950/90 backdrop-blur-sm border-b border-[var(--rawio-border)] dark:border-stone-800 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
 <div class="flex items-center gap-4">
-<!-- <span class="material-symbols-outlined text-[#c2652a] cursor-pointer">menu</span> -->
-<span class="text-2xl font-serif italic text-[#c2652a] dark:text-[#d97706]">raw.io</span>
+<!-- <span class="material-symbols-outlined text-primary cursor-pointer">menu</span> -->
+<span class="text-2xl font-serif italic text-primary">raw.io</span>
 </div>
 <div class="hidden md:flex bg-surface-container-low rounded-full p-1 border border-outline-variant/30" id="desktop-tabs">
 <button class="tab-btn px-6 py-1.5 rounded-full text-sm font-semibold sans-label text-stone-500 hover:text-primary transition-colors active" data-view="draft" onclick="switchView('draft')">Draft</button>
 <button class="tab-btn px-6 py-1.5 rounded-full text-sm font-semibold sans-label text-stone-500 hover:text-primary transition-colors" data-view="refined" onclick="switchView('refined')">Refined</button>
 <!-- <button class="tab-btn px-6 py-1.5 rounded-full text-sm font-semibold sans-label text-stone-500 hover:text-primary transition-colors" data-view="map" onclick="switchView('map')">Map</button> -->
 </div>
-<div class="flex items-center gap-3">
-<span class="hidden sm:inline text-xs text-stone-400 sans-label" id="user-email"></span>
-<button class="text-xs uppercase tracking-widest font-semibold text-stone-500 hover:text-primary transition-colors sans-label" id="signout-btn" title="Sign out">Sign out</button>
-</div>
+<button class="w-9 h-9 rounded-full bg-surface-container-low border border-outline-variant/40 flex items-center justify-center hover:opacity-80 transition-opacity" id="profile-btn" title="Profile">
+<span class="material-symbols-outlined text-primary" style="font-size:20px;">person</span>
+</button>
 </header>
 
 <main class="max-w-xl mx-auto px-6 pt-8 pb-32" id="page-note">
@@ -259,21 +284,21 @@ Actions
 <!-- FABs -->
 <div class="fixed bottom-24 right-6 flex flex-col items-end gap-3 z-50">
 <!-- Mic button — note page only -->
-<button class="w-16 h-16 rounded-full bg-primary text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all" id="mic-btn" onclick="toggleRecording()" title="Voice Record">
+<button class="w-16 h-16 rounded-full bg-primary text-on-primary shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all" id="mic-btn" onclick="toggleRecording()" title="Voice Record">
 <span class="material-symbols-outlined text-3xl" id="mic-icon" style="font-variation-settings: 'FILL' 1;">mic</span>
 </button>
 <!-- Submit button — note page only -->
-<button class="w-14 h-14 rounded-full bg-[#3a302a] text-[#faf5ee] shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all" id="submit-btn" onclick="submitNote()" title="Submit Note">
+<button class="w-14 h-14 rounded-full bg-[var(--rawio-font)] text-[var(--rawio-background)] shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all" id="submit-btn" onclick="submitNote()" title="Submit Note">
 <span class="material-symbols-outlined text-2xl" id="submit-icon" style="font-variation-settings: 'FILL' 1;">arrow_upward</span>
 </button>
 <!-- New File button — history page only, hidden by default -->
-<button class="w-16 h-16 rounded-full bg-primary text-white shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all hidden" id="main-fab" onclick="newNote()" title="New File">
+<button class="w-16 h-16 rounded-full bg-primary text-on-primary shadow-xl flex items-center justify-center hover:scale-105 active:scale-95 transition-all hidden" id="main-fab" onclick="newNote()" title="New File">
 <span class="material-symbols-outlined text-3xl" id="main-fab-icon" style="font-variation-settings: 'FILL' 1;">note_add</span>
 </button>
 </div>
 
-<nav class="bg-[#faf5ee]/95 dark:bg-stone-950/95 backdrop-blur-md border-t border-[#d8d0c8]/40 dark:border-stone-800 shadow-[0_-2px_16px_rgba(58,48,42,0.04)] fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3">
-<div class="flex flex-col items-center justify-center text-[#c2652a] scale-110 transition-transform cursor-pointer" id="nav-note" onclick="showPage('note')">
+<nav class="bg-[var(--rawio-nav-bg)] dark:bg-stone-950/95 backdrop-blur-md border-t border-[var(--rawio-border)] dark:border-stone-800 shadow-[0_-2px_16px_rgba(58,48,42,0.04)] fixed bottom-0 w-full z-50 flex justify-around items-center px-4 pb-6 pt-3">
+<div class="flex flex-col items-center justify-center text-primary scale-110 transition-transform cursor-pointer" id="nav-note" onclick="showPage('note')">
 <span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">edit_note</span>
 <span class="text-[11px] uppercase tracking-widest font-sans font-semibold mt-1">Note</span>
 </div>
@@ -282,6 +307,77 @@ Actions
 <span class="text-[11px] uppercase tracking-widest font-sans font-semibold mt-1">History</span>
 </div>
 </nav>
+
+<!-- PROFILE POPUP -->
+<div class="hidden fixed inset-0 z-[150]" id="profile-overlay">
+<div class="absolute inset-0 bg-black/30" id="profile-backdrop"></div>
+<div class="absolute top-0 right-0 h-full w-full sm:w-96 bg-background shadow-2xl overflow-y-auto" id="profile-panel">
+<div class="p-6 pb-16">
+<div class="flex justify-end mb-2">
+<button class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-surface-container-low transition-colors" id="profile-close" title="Close">
+<span class="material-symbols-outlined text-on-surface-variant">close</span>
+</button>
+</div>
+
+<div class="mb-6">
+<p class="text-2xl font-headline font-semibold text-on-background cursor-pointer" id="profile-name-display"></p>
+<input class="hidden text-2xl font-headline font-semibold text-on-background bg-transparent border-b border-outline-variant w-full focus:outline-none" id="profile-name-input" placeholder="Add your name">
+<p class="text-sm text-on-surface-variant mt-1.5" id="profile-email"></p>
+<p class="text-xs text-stone-400 mt-1" id="profile-note-count"></p>
+</div>
+
+<div class="h-px bg-outline-variant/60 my-6"></div>
+
+<p class="text-xs uppercase tracking-widest font-bold text-on-surface-variant mb-4">Personalise</p>
+
+<div class="mb-4">
+<p class="text-xs uppercase tracking-wide font-semibold text-on-surface-variant mb-2">Highlight</p>
+<div class="flex gap-2.5 overflow-x-auto pb-1" id="swatches-highlight"></div>
+</div>
+<div class="mb-4">
+<p class="text-xs uppercase tracking-wide font-semibold text-on-surface-variant mb-2">Background</p>
+<div class="flex gap-2.5 overflow-x-auto pb-1" id="swatches-background"></div>
+</div>
+<div class="mb-4">
+<p class="text-xs uppercase tracking-wide font-semibold text-on-surface-variant mb-2">Font</p>
+<div class="flex gap-2.5 overflow-x-auto pb-1" id="swatches-font"></div>
+</div>
+
+<div class="rounded-2xl border border-outline-variant p-4 mt-2 mb-3" id="theme-preview-card">
+<p class="font-headline text-lg font-semibold mb-1" id="theme-preview-title">A note, rambling gently</p>
+<p class="text-sm opacity-70 mb-3" id="theme-preview-body">This is how your body text will read once it's refined.</p>
+<span class="inline-block rounded-full px-4 py-2 text-sm font-semibold" id="theme-preview-chip">Process note →</span>
+</div>
+
+<button class="flex items-center gap-2 text-sm text-on-surface-variant hover:text-primary transition-colors" id="theme-reset-btn">
+<span class="material-symbols-outlined" style="font-size:16px;">restart_alt</span>
+Reset to default
+</button>
+
+<div class="h-px bg-outline-variant/60 my-6"></div>
+
+<p class="text-xs uppercase tracking-widest font-bold text-on-surface-variant mb-3">Account</p>
+
+<button class="w-full flex items-center gap-3 py-3 text-sm text-on-background hover:text-primary transition-colors" id="export-notes-btn">
+<span class="material-symbols-outlined" style="font-size:19px;">download</span>
+Export notes
+</button>
+<button class="w-full flex items-center gap-3 py-3 text-sm text-error" id="clear-notes-btn">
+<span class="material-symbols-outlined" style="font-size:19px;">delete</span>
+Clear all notes
+</button>
+
+<button class="w-full mt-5 py-3 rounded-full border border-outline-variant text-sm font-semibold text-on-background hover:bg-surface-container-low transition-colors" id="profile-signout-btn">Log out</button>
+
+<div class="h-px bg-outline-variant/60 my-8"></div>
+
+<div class="text-center">
+<p class="text-xs text-stone-400">Version 1.0.0</p>
+<p class="text-sm italic font-headline text-stone-400 mt-1">Built with raw.io</p>
+</div>
+</div>
+</div>
+</div>
 
 <script>
     function showPage(page) {
