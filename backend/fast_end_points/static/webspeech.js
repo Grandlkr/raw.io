@@ -2,10 +2,10 @@
 // Public anon key — safe to embed client-side, matches the mobile app's config.
 const SUPABASE_URL = 'https://xsylwbamcpjowzbjprzt.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InhzeWx3YmFtY3Bqb3d6Ympwcnp0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODg2MzM0MTEsImV4cCI6MjEwNDIwOTQxMX0.U4tE49LTDWrJm_pZfx44L3gXrS1NY22IDX04tanz6Hc';
-const isLocalHost = ['localhost', '127.0.0.1'].includes(window.location.hostname);
-const API_URL = isLocalHost ? 'http://127.0.0.1:8000' : 'https://raw-io-1.onrender.com';
 const SOFT_CHAR_LIMIT = 5000;
 
+// Served from the same FastAPI app that hosts the API, so every request below
+// is same-origin — no API_URL / localhost-vs-production switch needed here.
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
 });
@@ -28,6 +28,15 @@ if (speechAvailable) {
     speak.lang = 'en-US';
     speak.interimResults = true;
     speak.maxAlternatives = 1;
+}
+
+// ---- PWA install / service worker ----
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/service-worker.js').catch((err) => {
+            console.warn('[pwa] Service worker registration failed:', err);
+        });
+    });
 }
 
 // ---- Toast ----
@@ -307,7 +316,7 @@ document.getElementById('clear-notes-btn')?.addEventListener('click', async () =
     if (!currentSession) return;
     if (!confirm('This will permanently delete all your notes. Are you sure?')) return;
     try {
-        const response = await fetch(`${API_URL}/notes`, {
+        const response = await fetch('/notes', {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${currentSession.access_token}` },
         });
@@ -399,7 +408,7 @@ sb.auth.getSession().then(({ data }) => {
 async function fetchHistory() {
     if (!currentSession) return [];
     try {
-        const response = await fetch(`${API_URL}/notes`, {
+        const response = await fetch('/notes', {
             headers: { Authorization: `Bearer ${currentSession.access_token}` },
         });
         const data = await response.json().catch(() => []);
@@ -415,7 +424,7 @@ async function fetchHistory() {
 async function deleteNoteRemote(noteId) {
     if (!currentSession) return false;
     try {
-        const response = await fetch(`${API_URL}/notes/${noteId}`, {
+        const response = await fetch(`/notes/${noteId}`, {
             method: 'DELETE',
             headers: { Authorization: `Bearer ${currentSession.access_token}` },
         });
@@ -436,7 +445,7 @@ function sendNotes(text) {
     console.log('[send] Sending to API:', text);
     setProcessing(true);
 
-    fetch(`${API_URL}/`, {
+    fetch('/', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',

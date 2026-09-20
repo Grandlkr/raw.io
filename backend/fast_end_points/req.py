@@ -9,6 +9,9 @@ import jwt
 from dotenv import load_dotenv
 from fastapi import FastAPI, Header, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import FileResponse, HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
 from google import genai
 from google.genai import errors, types
 from pydantic import BaseModel
@@ -73,6 +76,16 @@ limiter = Limiter(key_func=rate_limit_key, strategy="moving-window")
 app = FastAPI()
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+templates = Jinja2Templates(directory=os.path.join(BASE_DIR, "templates"))
+app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
+
+APP_NAME = "raw.io"
+APP_DESCRIPTION = "Come as you are, leave with structure."
+THEME_COLOR = "#c2652a"
+BACKGROUND_COLOR = "#faf5ee"
 
 # Bearer-token auth (not cookies) doesn't need CORS credentials, so any origin
 # can be allowed safely — this covers the web app's Vercel domains, local dev,
@@ -166,6 +179,31 @@ async def supabase_request(method: str, token: str, **kwargs) -> httpx.Response:
 @app.get("/health")
 async def health():
     return {"status": "ok"}
+
+
+@app.get("/", response_class=HTMLResponse)
+async def index(request: Request):
+    return templates.TemplateResponse(
+        request,
+        "index.html",
+        {
+            "app_name": APP_NAME,
+            "description": APP_DESCRIPTION,
+            "theme_color": THEME_COLOR,
+            "background_color": BACKGROUND_COLOR,
+        },
+    )
+
+
+@app.get("/manifest.json", include_in_schema=False)
+async def manifest():
+    return FileResponse(os.path.join(STATIC_DIR, "manifest.json"), media_type="application/manifest+json")
+
+
+@app.get("/service-worker.js", include_in_schema=False)
+async def service_worker():
+    # Served from the root (not /static/) so its default scope covers the whole origin.
+    return FileResponse(os.path.join(STATIC_DIR, "service-worker.js"), media_type="application/javascript")
 
 
 @app.post("/")

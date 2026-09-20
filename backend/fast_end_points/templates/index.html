@@ -1,7 +1,19 @@
 <!DOCTYPE html><html class="light" lang="en"><head>
 <meta charset="utf-8">
-<meta content="width=device-width, initial-scale=1.0" name="viewport">
-<title>Unified Note - raw.io</title>
+<meta content="width=device-width, initial-scale=1.0, viewport-fit=cover" name="viewport">
+<title>{{ app_name }} — Unified Note</title>
+<meta name="description" content="{{ description }}">
+
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="{{ theme_color }}">
+<meta name="background-color" content="{{ background_color }}">
+<link rel="icon" href="/static/icons/icon-192.png">
+<link rel="apple-touch-icon" href="/static/icons/apple-touch-icon.png">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="{{ app_name }}">
+
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400..800;1,400..800&amp;family=Manrope:wght@200..800&amp;display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
@@ -77,8 +89,8 @@
     </script>
 <style>
         :root {
-            --rawio-highlight: #c2652a;
-            --rawio-background: #faf5ee;
+            --rawio-highlight: {{ theme_color }};
+            --rawio-background: {{ background_color }};
             --rawio-font: #3a302a;
             --rawio-highlight-soft: rgba(194, 101, 42, 0.14);
             --rawio-surface: #f6f0e8;
@@ -145,7 +157,7 @@
 <div class="fixed inset-0 z-[100] bg-background flex items-center justify-center px-6" id="auth-gate">
 <div class="w-full max-w-sm">
 <div class="text-center mb-8">
-<span class="text-3xl font-serif italic text-primary">raw.io</span>
+<span class="text-3xl font-serif italic text-primary">{{ app_name }}</span>
 <p class="mt-2 text-sm text-stone-500" id="auth-subtitle">Sign in to sync your notes across devices.</p>
 </div>
 <form class="space-y-4" id="auth-form">
@@ -172,13 +184,11 @@
 
 <header class="bg-[var(--rawio-header-bg)] dark:bg-stone-950/90 backdrop-blur-sm border-b border-[var(--rawio-border)] dark:border-stone-800 flex justify-between items-center w-full px-6 py-4 sticky top-0 z-40">
 <div class="flex items-center gap-4">
-<!-- <span class="material-symbols-outlined text-primary cursor-pointer">menu</span> -->
-<span class="text-2xl font-serif italic text-primary">raw.io</span>
+<span class="text-2xl font-serif italic text-primary">{{ app_name }}</span>
 </div>
 <div class="hidden md:flex bg-surface-container-low rounded-full p-1 border border-outline-variant/30" id="desktop-tabs">
 <button class="tab-btn px-6 py-1.5 rounded-full text-sm font-semibold sans-label text-stone-500 hover:text-primary transition-colors active" data-view="draft" onclick="switchView('draft')">Draft</button>
 <button class="tab-btn px-6 py-1.5 rounded-full text-sm font-semibold sans-label text-stone-500 hover:text-primary transition-colors" data-view="refined" onclick="switchView('refined')">Refined</button>
-<!-- <button class="tab-btn px-6 py-1.5 rounded-full text-sm font-semibold sans-label text-stone-500 hover:text-primary transition-colors" data-view="map" onclick="switchView('map')">Map</button> -->
 </div>
 <button class="w-9 h-9 rounded-full bg-surface-container-low border border-outline-variant/40 flex items-center justify-center hover:opacity-80 transition-opacity" id="profile-btn" title="Profile">
 <span class="material-symbols-outlined text-primary" style="font-size:20px;">person</span>
@@ -189,7 +199,6 @@
 <div class="flex md:hidden bg-surface-container-low rounded-full p-1 border border-outline-variant/30 mb-8 w-fit mx-auto" id="mobile-tabs">
 <button class="tab-btn px-5 py-1.5 rounded-full text-xs font-semibold sans-label text-stone-500 active" data-view="draft" onclick="switchView('draft')">Draft</button>
 <button class="tab-btn px-5 py-1.5 rounded-full text-xs font-semibold sans-label text-stone-500" data-view="refined" onclick="switchView('refined')">Refined</button>
-<!-- <button class="tab-btn px-5 py-1.5 rounded-full text-xs font-semibold sans-label text-stone-500" data-view="map" onclick="switchView('map')">Map</button> -->
 </div>
 
 <!-- VIEW: DRAFT -->
@@ -252,18 +261,6 @@ Actions
 
 </div>
 </div>
-
-<!-- VIEW: MAP — commented out, not yet implemented -->
-<!--
-<div class="view-content" id="view-map">
-<section class="mb-10 text-center">
-<h1 class="text-4xl md:text-5xl font-headline font-semibold tracking-tight text-on-background leading-tight">Strategy Map</h1>
-<p class="mt-3 text-stone-500 italic font-headline text-lg">Visualizing connections</p>
-</section>
-<div class="relative bg-surface-container-low rounded-3xl border border-outline-variant/40 h-96 overflow-hidden flex items-center justify-center p-8">
-</div>
-</div>
--->
 
 </main>
 
@@ -373,7 +370,7 @@ Clear all notes
 
 <div class="text-center">
 <p class="text-xs text-stone-400">Version 1.0.0</p>
-<p class="text-sm italic font-headline text-stone-400 mt-1">Built with raw.io</p>
+<p class="text-sm italic font-headline text-stone-400 mt-1">Built with {{ app_name }}</p>
 </div>
 </div>
 </div>
@@ -500,6 +497,6 @@ Clear all notes
         switchView('refined');
     }
 </script>
-<script src="webspeech.js"></script>
+<script src="/static/webspeech.js"></script>
 
 </body></html>

@@ -26,7 +26,7 @@ Not a structured notes tool like Notion. A thinking partner.
 
 ## Tech stack
 
-- **Frontend** — HTML, CSS (Tailwind), vanilla JavaScript
+- **Web frontend** — Jinja2 (server-rendered HTML), Tailwind (CDN), vanilla JavaScript — served directly by the FastAPI app and installable as a PWA
 - **Voice capture** — Web Speech API (browser-native)
 - **Backend** — FastAPI (Python)
 - **AI** — Google Gemini API
@@ -36,16 +36,16 @@ Not a structured notes tool like Notion. A thinking partner.
 
 ## Running locally
 
-### Backend
+The web frontend is rendered and served by the same FastAPI app as the API, so there's only one process to run.
 
 ```bash
-cd backend
+cd backend/fast_end_points
 python -m venv venv
 venv\Scripts\activate        # Windows
 pip install -r requirements.txt
 ```
 
-Create a `.env` file in the backend folder:
+Create a `.env` file in `backend/fast_end_points`:
 ```
 GEMINI_API_KEY=your_key_here
 SUPABASE_URL=your_supabase_project_url
@@ -54,22 +54,14 @@ SUPABASE_ANON_KEY=your_supabase_anon_key
 
 The backend verifies sign-in tokens from the web and mobile apps against Supabase's public JWKS endpoint (`{SUPABASE_URL}/auth/v1/.well-known/jwks.json`) — no shared secret needed, since this project signs tokens with Supabase's asymmetric (ES256) JWT keys.
 
-Run the server (the frontend expects it on port 8000 when testing locally):
+Run the server:
 ```bash
-cd fast_end_points
 uvicorn req:app --reload --port 8000
 ```
 
-### Frontend
+Then open `http://127.0.0.1:8000` in Chrome — that's both the app and the API on the same origin. The Web Speech API requires a server context (not `file://`), which this already satisfies.
 
-The Web Speech API requires a server context (not `file://`). Serve the frontend folder:
-
-```bash
-cd frontend
-python -m http.server 5501
-```
-
-Then open `http://127.0.0.1:5501/index.html` in Chrome. When served from `localhost`/`127.0.0.1`, the page automatically points at the local backend (`http://127.0.0.1:8000`) instead of production.
+The page is installable as a PWA (manifest at `/manifest.json`, service worker at `/service-worker.js` for the app shell). Look for the install icon in the browser's address bar, or "Add to Home Screen" on mobile.
 
 ---
 
@@ -77,7 +69,7 @@ Then open `http://127.0.0.1:5501/index.html` in Chrome. When served from `localh
 
 raw.io is an active work-in-progress portfolio project. Current focus areas:
 
-- [x] Deployment (frontend on Vercel, backend on Render)
+- [x] Deployment (web frontend + backend both on Render, served from one FastAPI app)
 - [x] History screen for saved notes
 - [x] Reset / new note flow
 - [x] Bullet point styling refinement
