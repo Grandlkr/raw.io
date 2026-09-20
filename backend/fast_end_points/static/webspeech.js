@@ -487,11 +487,11 @@ function sendNotes(text) {
 function toggleRecording() {
     if (!speechAvailable) return;
     if (!isRecording) {
-        speak.start();
         isRecording = true;
         savedTranscript = '';
         document.querySelector('#raw_txt').innerText = '';
         document.querySelector('#mic-icon').innerText = 'radio_button_checked';
+        try { speak.start(); } catch (e) { console.warn('[mic] Start failed:', e); }
         console.log('[mic] Recording started.');
     } else {
         speak.stop();
@@ -502,25 +502,29 @@ function toggleRecording() {
 
 if (speechAvailable) {
     speak.onresult = (event) => {
+        // Only walk results new since the last callback (event.resultIndex) and only
+        // ever commit *final* results to savedTranscript. Baking still-interim words
+        // into the permanent transcript (e.g. on a silence-triggered restart) caused
+        // them to be re-heard and finalized a second time in the next session — the
+        // "repeats everything" bug. Interim text is always re-derived from scratch
+        // and shown for preview only, never persisted as-is.
         let interimText = '';
-        let finalText = '';
-
-        for (let i = 0; i < event.results.length; i++) {
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+            const transcript = event.results[i][0].transcript;
             if (event.results[i].isFinal) {
-                finalText += event.results[i][0].transcript + ' ';
+                savedTranscript += transcript + ' ';
             } else {
-                interimText += event.results[i][0].transcript;
+                interimText += transcript;
             }
         }
 
-        document.querySelector('#raw_txt').innerText = savedTranscript + finalText + interimText;
+        document.querySelector('#raw_txt').innerText = savedTranscript + interimText;
         updateCharCount();
-        console.log('[mic] Transcript — final:', finalText.trim(), '| interim:', interimText.trim());
+        console.log('[mic] Transcript — committed:', savedTranscript.trim(), '| interim:', interimText.trim());
     };
 
     speak.onend = () => {
         if (isRecording) {
-            savedTranscript = document.querySelector('#raw_txt').innerText;
             console.log('[mic] Silence detected, restarting. Saved so far:', savedTranscript);
             setTimeout(() => {
                 try { speak.start(); } catch (e) { console.warn('[mic] Restart failed:', e); }
@@ -536,8 +540,22 @@ if (speechAvailable) {
         console.error('[mic] Recognition error:', e.error);
         showToast('Voice input error. Try again.', true);
     };
+} else if (isIOS) {
+    // Safari has no SpeechRecognition API at all, but iOS's own keyboard has a
+    // dictation mic that already works in this contenteditable field for free —
+    // point the mic button at that instead of showing a dead "not supported" button.
+    const micBtn = document.getElementById('mic-btn');
+    const micIcon = document.getElementById('mic-icon');
+    if (micIcon) micIcon.innerText = 'keyboard_voice';
+    if (micBtn) {
+        micBtn.title = "Tap the note, then use your keyboard's dictation mic";
+        micBtn.onclick = () => {
+            document.querySelector('#raw_txt').focus();
+            showToast("Tap the note field, then tap the mic on your keyboard to dictate.");
+        };
+    }
 } else {
-    // Grey out and disable the mic button on browsers without SpeechRecognition (e.g. iOS Safari)
+    // Grey out and disable the mic button on browsers without SpeechRecognition support at all.
     const micBtn = document.getElementById('mic-btn');
     if (micBtn) {
         micBtn.disabled = true;
